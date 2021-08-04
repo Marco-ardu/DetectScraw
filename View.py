@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
     QApplication, QDialog, QMainWindow, QMessageBox
 )
 from PyQt5.uic import loadUi
-from ui_qtcart import Ui_MainWindow
+from ui.ui_qtcart import Ui_MainWindow
 
 class ViewWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
@@ -19,3 +19,7 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
 
     def ImageUpdateSlot(self, Image):
         self.ImageLabel.setPixmap(QPixmap.fromImage(Image))
+
+    def keyPressEvent(self, event):
+        key = event.key()
+        print(key)

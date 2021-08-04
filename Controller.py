@@ -1,11 +1,9 @@
-import cv2
-
-from View import View
+from View import ViewWindow
 from Model import Model
 from Infrastructure.Worker import Worker
 
-class Controller:
-    def __init__(self, model: Model, view: View) -> None:
+class MainController:
+    def __init__(self, model: Model, view: ViewWindow) -> None:
         self.model = model
         self.view = view
 
