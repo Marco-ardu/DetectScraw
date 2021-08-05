@@ -14,6 +14,9 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
 
     def setup(self, controller):
+        self.ImageLabel.adjustSize()
+        self.actionStart.triggered.connect(controller.btnStart_clicked)
+        self.actionStop.triggered.connect(controller.btnStop_clicked)
         self.btnStart.clicked.connect(controller.btnStart_clicked)
         self.btnStop.clicked.connect(controller.btnStop_clicked)
 
@@ -23,3 +26,4 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
     def keyPressEvent(self, event):
         key = event.key()
         print(key)
+        self.LabelPedestrian.setStyleSheet("background-color: yellow")

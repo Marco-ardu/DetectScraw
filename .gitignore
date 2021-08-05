@@ -1,2 +1,4 @@
 *.pyc
 carEnv
+.fake
+.ionide
