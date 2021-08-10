@@ -1,12 +1,11 @@
 from View import ViewWindow
 from Model import Model, PedestrianAlert, WarnAlert
-from Infrastructure.Worker import Worker
+from Worker import Worker
 
 class MainController:
-    def __init__(self, model: Model, view: ViewWindow, alert: WarnAlert) -> None:
+    def __init__(self, model: Model, view: ViewWindow) -> None:
         self.model = model
         self.view = view
-        self.alert = alert
 
     def start(self):
         self.view.setup(self)
@@ -15,7 +14,8 @@ class MainController:
     def btnStart_clicked(self):
         self.view.Worker = Worker()
         self.view.Worker.start()
-        self.view.Worker.ImageUpdate.connect(self.view.ImageUpdateSlot)
+        self.view.Worker.FrontImage.connect(self.view.UpdateFrontSlot)
+        self.view.Worker.RearImage.connect(self.view.UpdateRearSlot)
 
     def btnStop_clicked(self):
         self.view.Worker.stop()

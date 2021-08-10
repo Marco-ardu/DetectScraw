@@ -9,9 +9,15 @@ class Model:
 
 class WarnAlert(ABC):
     status = False
+
     @abstractclassmethod
-    def Alert(self):
+    def RedAlert(self):
         pass
+
+    @abstractclassmethod
+    def YellowAlert(self):
+        pass
+
     def Ease(self):
         pass
 
