@@ -1,16 +1,33 @@
 import cv2
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QImage
+import depthai as dai
 import time
+
 def runRearCamera(q, command):
+    pipeline = dai.Pipeline()
+
+    # Define a source - color camera
+    cam_rgb = pipeline.createColorCamera()
+    cam_rgb.setPreviewSize(600, 600)
+    cam_rgb.setBoardSocket(dai.CameraBoardSocket.RGB)
+    cam_rgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
+    cam_rgb.setInterleaved(False)
+
+    # Create output
+    xout_rgb = pipeline.createXLinkOut()
+    xout_rgb.setStreamName("rgb")
+    cam_rgb.preview.link(xout_rgb.input)
+
+    device_info = dai.Device.getAllAvailableDevices()[1]
+    device = dai.Device(pipeline, device_info)
+    print("Conected to " + device_info.getMxId())
+    # Output queue will be used to get the rgb frames from the output defined above
+    q_rgb = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
+
     i = 0
     while command.value == 1:
-        i += 1
-        img_id = ( i + 1 ) % 2 + 1
-        frame = cv2.imread(f'test_img/{img_id}.jpg')
-        frame = cv2.resize(frame, (400,250))
-        #rear_child_conn.send(frame)
-        q.put_nowait(frame)
-        time.sleep(0.1)
+        in_rgb = q_rgb.tryGet()
+        if in_rgb is not None:
+            frame = in_rgb.getCvFrame()
+            q.put_nowait(frame)
 
     print('end rear')
