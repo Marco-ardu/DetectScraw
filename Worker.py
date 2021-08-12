@@ -1,3 +1,4 @@
+from re import S
 from PyQt5.QtCore import QThread, pyqtSignal, Qt
 from PyQt5.QtGui import QImage
 
@@ -7,6 +8,7 @@ import cv2
 import time
 
 from cameraFunc import FaceCamera, PedestrianCamera
+from Gen2.FatigueCam import runFatigueCam
 
 class Worker(QThread):
     FrontImage = pyqtSignal(QImage)
@@ -14,10 +16,12 @@ class Worker(QThread):
     Alert = pyqtSignal(str)
 
     command = mp.Value('i', 1)
+    warning = mp.Value('i', 0)
     front_queue = mp.Queue(4)
     rear_queue = mp.Queue(4)
 
-    front_proccess = mp.Process(target=FaceCamera.runFaceCamera, args=(front_queue, command,))
+    #front_proccess = mp.Process(target=FaceCamera.runFaceCamera, args=(front_queue, command,))
+    front_proccess = mp.Process(target=runFatigueCam, args=(front_queue, command,warning, ))
     rear_proccess = mp.Process(target=PedestrianCamera.runRearCamera, args=(rear_queue, command,))
 
     def run(self):
@@ -25,7 +29,7 @@ class Worker(QThread):
         self.rear_proccess.start()
         self.ThreadActive = True
         i = 0
-        self.Alert.emit('alert alert')
+        
         while self.ThreadActive:
             try:
                 front_frame = self.front_queue.get_nowait()
@@ -40,10 +44,17 @@ class Worker(QThread):
                 self.RearImage.emit(rear_Pic)
             except queue.Empty or queue.Full:
                 pass
+            if self.warning.value == 1:
+                self.Alert.emit('alert alert')
+                self.warning.value = 0
 
         print('while loop ended')
         self.front_queue.close()
-        self.rear_queue.close()        
+        self.rear_queue.close()       
+
+        # normally dont just kill
+        self.front_proccess.kill()
+        self.rear_proccess.kill() 
 
 
     def stop(self):

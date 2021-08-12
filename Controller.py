@@ -16,12 +16,11 @@ class MainController:
         self.view.Worker.start()
         self.view.Worker.FrontImage.connect(self.view.UpdateFrontSlot)
         self.view.Worker.RearImage.connect(self.view.UpdateRearSlot)
-        self.view.Worker.Alert.connect(self.runAlert)
+        self.view.Worker.Alert.connect(self.view.runAlert)
 
     def btnStop_clicked(self):
         self.view.Worker.stop()
 
-    def runAlert(self, alertStr):
-        print(alertStr)
+
 
 
