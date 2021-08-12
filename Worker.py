@@ -11,10 +11,9 @@ from cameraFunc import FaceCamera, PedestrianCamera
 class Worker(QThread):
     FrontImage = pyqtSignal(QImage)
     RearImage = pyqtSignal(QImage)
+    Alert = pyqtSignal(str)
 
     command = mp.Value('i', 1)
-    #front_parent, front_child = mp.Pipe()
-    #rear_parent, rear_child = mp.Pipe()
     front_queue = mp.Queue(4)
     rear_queue = mp.Queue(4)
 
@@ -26,13 +25,14 @@ class Worker(QThread):
         self.rear_proccess.start()
         self.ThreadActive = True
         i = 0
+        self.Alert.emit('alert alert')
         while self.ThreadActive:
             try:
                 front_frame = self.front_queue.get_nowait()
                 front_Pic = frameToPic(front_frame)
                 self.FrontImage.emit(front_Pic)
-            except:
-                print('front failed')
+            except queue.Empty or queue.Full:
+                pass
 
             try:
                 rear_frame = self.rear_queue.get_nowait()
@@ -41,6 +41,9 @@ class Worker(QThread):
             except queue.Empty or queue.Full:
                 pass
 
+        print('while loop ended')
+        self.front_queue.close()
+        self.rear_queue.close()        
 
 
     def stop(self):

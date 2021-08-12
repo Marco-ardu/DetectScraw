@@ -31,7 +31,7 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
 
     def keyPressEvent(self, event):
         key = event.key()
-        sound_file = 'sound/glass.wav'
+        sound_file = 'sound/pedestrian.wav'
         QSound.play(sound_file)
         print(key)
         self.LabelPedestrian.setStyleSheet("background-color: yellow")
