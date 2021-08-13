@@ -18,9 +18,11 @@ def runRearCamera(q, command):
         xout_rgb.setStreamName("rgb")
         cam_rgb.preview.link(xout_rgb.input)
 
-        device_info = dai.Device.getAllAvailableDevices()[1]
-        device = dai.Device(pipeline, device_info)
+        found, device_info = dai.Device.getDeviceByMxId("14442C1051EF97CD00")
+        if not found:
+            raise RuntimeError("device not found")
         print("Conected to " + device_info.getMxId())
+        device = dai.Device(pipeline, device_info)
         # Output queue will be used to get the rgb frames from the output defined above
         q_rgb = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
 

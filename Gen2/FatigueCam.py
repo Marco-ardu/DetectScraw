@@ -209,7 +209,9 @@ class Main:
 
     def start_pipeline(self):
         #self.device = depthai.Device(self.pipeline)
-        device_info = depthai.Device.getAllAvailableDevices()[0]
+        found, device_info = depthai.Device.getDeviceByMxId("14442C1051EF97CD00")
+        if not found:
+            raise RuntimeError("device not found")
         self.device = depthai.Device(self.pipeline, device_info)
         print("Starting pipeline...")
         if self.camera:
