@@ -8,6 +8,8 @@ from scipy.spatial.distance import euclidean
 import os
 import time
 import math
+import config
+import queue
 
 
 # Get rotation vector and translation vector                        
@@ -318,9 +320,10 @@ class Main:
                 self.mCOUNTER = 0
 
             cv2.putText(self.debug_frame,"eye:{:d},mouth:{:d},head:{:d}".format(self.TOTAL,self.mTOTAL,self.hTOTAL),(10,40),cv2.FONT_HERSHEY_COMPLEX_SMALL,0.5,(255,0,0,))
-            if self.TOTAL >= 50 or self.mTOTAL>=15 or self.hTOTAL >= 10:
+            if self.TOTAL >= 8 or self.mTOTAL>=config.YAWN_COUNT or self.hTOTAL >= config.HEAD_DOSE_COUNT:
                 cv2.putText(self.debug_frame, "Danger!!!", (100, 200),cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
                 self.alert.value = 1
+
             if self.alert.value == 1:
                 self.TOTAL = 0
                 self.mTOTAL = 0
@@ -352,7 +355,11 @@ class Main:
         
         aspect_ratio = self.frame.shape[1] / self.frame.shape[0]
         frame_to_queue = cv2.resize(self.debug_frame, ( int(900),  int(900 / aspect_ratio)))
-        self.frame_queue.put_nowait(frame_to_queue)
+
+        try:
+            self.frame_queue.put_nowait(frame_to_queue)
+        except queue.Full:
+            pass
 
         if self.command.value == 0:
             raise StopIteration()

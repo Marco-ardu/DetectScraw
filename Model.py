@@ -8,23 +8,24 @@ class Model:
 
 
 class WarnAlert(ABC):
-    status = False
+    warn_message = 'abstract warning'
+    warn_color = None
 
-    @abstractclassmethod
-    def RedAlert(self):
-        pass
+    @classmethod
+    def yellowAlert(cls):
+        cls.warn_color = 'yellow'
 
-    @abstractclassmethod
-    def YellowAlert(self):
-        pass
+    @classmethod
+    def redAlert(cls):
+        cls.warn_color = 'red'    
 
-    def Ease(self):
-        pass
 
 class PedestrianAlert(WarnAlert):
+    warn_message = '注意行人'
+    warn_file = 'sound/pedestrian.wav'
 
-    def Alert(self):
-        self.status = True
-    def Ease(self):
-        self.status = False
+
+class DriverAlert(WarnAlert):
+    warn_message = '駕駛注意'
+    warn_file = 'sound/focus.wav'
 

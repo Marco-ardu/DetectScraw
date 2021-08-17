@@ -18,7 +18,7 @@ def runRearCamera(q, command):
         xout_rgb.setStreamName("rgb")
         cam_rgb.preview.link(xout_rgb.input)
 
-        found, device_info = dai.Device.getDeviceByMxId("14442C1051EF97CD00")
+        found, device_info = dai.Device.getDeviceByMxId("14442C10C1088FCD00")
         if not found:
             raise RuntimeError("device not found")
         print("Conected to " + device_info.getMxId())

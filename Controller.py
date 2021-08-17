@@ -20,6 +20,8 @@ class MainController:
 
     def btnStop_clicked(self):
         self.view.Worker.stop()
+        self.view.LabelFront.clear()
+        self.view.LabelRear.clear()
 
 
 
