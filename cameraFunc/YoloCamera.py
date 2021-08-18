@@ -8,7 +8,7 @@ import numpy as np
 import time
 import sys
 import queue
-import config
+import DETECTION_CONFIG
 
 '''
 Spatial Tiny-yolo example
@@ -52,19 +52,25 @@ def runYoloCamera(frame_queue, command, alert):
     monoLeft = pipeline.createMonoCamera()
     monoRight = pipeline.createMonoCamera()
     stereo = pipeline.createStereoDepth()
+    manip = pipeline.createImageManip()
 
     xoutRgb = pipeline.createXLinkOut()
     xoutNN = pipeline.createXLinkOut()
     xoutBoundingBoxDepthMapping = pipeline.createXLinkOut()
     xoutDepth = pipeline.createXLinkOut()
+    manipOut = pipeline.createXLinkOut()
 
     xoutRgb.setStreamName("rgb")
     xoutNN.setStreamName("detections")
     xoutBoundingBoxDepthMapping.setStreamName("boundingBoxDepthMapping")
     xoutDepth.setStreamName("depth")
+    manipOut.setStreamName("manip")
 
     # Properties
-    camRgb.setPreviewSize(416, 416)
+    #camRgb.setPreviewSize(416, 416)
+    camRgb.setPreviewSize(1080, 720)
+    camRgb.setPreviewKeepAspectRatio(True)
+    #camRgb.setVideoSize(1080, 720)
     camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
     camRgb.setInterleaved(False)
     camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
@@ -73,6 +79,11 @@ def runYoloCamera(frame_queue, command, alert):
     monoLeft.setBoardSocket(dai.CameraBoardSocket.LEFT)
     monoRight.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
     monoRight.setBoardSocket(dai.CameraBoardSocket.RIGHT)
+
+
+    manip.initialConfig.setResizeThumbnail(416, 416)
+    manip.initialConfig.setFrameType(dai.ImgFrame.Type.BGR888p)
+    manip.inputImage.setBlocking(False)
 
     # setting node configs
     stereo.initialConfig.setConfidenceThreshold(255)
@@ -95,7 +106,9 @@ def runYoloCamera(frame_queue, command, alert):
     monoLeft.out.link(stereo.left)
     monoRight.out.link(stereo.right)
 
-    camRgb.preview.link(spatialDetectionNetwork.input)
+    camRgb.preview.link(manip.inputImage)
+    manip.out.link(spatialDetectionNetwork.input)
+    #camRgb.preview.link(spatialDetectionNetwork.input)
     if syncNN:
         spatialDetectionNetwork.passthrough.link(xoutRgb.input)
     else:
@@ -107,7 +120,7 @@ def runYoloCamera(frame_queue, command, alert):
     stereo.depth.link(spatialDetectionNetwork.inputDepth)
     spatialDetectionNetwork.passthroughDepth.link(xoutDepth.input)
 
-    found, device_info = dai.Device.getDeviceByMxId(config.FRONT_CAMERA_ID)
+    found, device_info = dai.Device.getDeviceByMxId(DETECTION_CONFIG.FRONT_CAMERA_ID)
     if not found:
         raise RuntimeError("device not found")
     device = dai.Device(pipeline, device_info)
@@ -169,10 +182,10 @@ def runYoloCamera(frame_queue, command, alert):
             if alert.value != 0:
                 continue
 
-            if person_distance < config.RED_ALERT_DISTANCE:
-                alert.value = config.RED_ALERT_SIGNAL
-            elif person_distance < config.YELLOW_ALERT_DISTANCE:
-                alert.value = config.YELLOW_ALERT_SIGNAL  
+            if person_distance < DETECTION_CONFIG.RED_ALERT_DISTANCE:
+                alert.value = DETECTION_CONFIG.RED_ALERT_SIGNAL
+            elif person_distance < DETECTION_CONFIG.YELLOW_ALERT_DISTANCE:
+                alert.value = DETECTION_CONFIG.YELLOW_ALERT_SIGNAL  
         try:
             frame_queue.put_nowait(frame)
         except queue.Full:

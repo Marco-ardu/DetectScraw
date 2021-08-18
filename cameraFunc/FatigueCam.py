@@ -8,9 +8,8 @@ from scipy.spatial.distance import euclidean
 import os
 import time
 import math
-import config
+import DETECTION_CONFIG
 import queue
-
 
 # Get rotation vector and translation vector                        
 def get_pose_estimation(img_size, image_points ):
@@ -289,8 +288,8 @@ class Main:
             cv2.putText(self.debug_frame,euler_angle_str,(10,20),cv2.FONT_HERSHEY_COMPLEX_SMALL,0.5,(0,0,255))
             if pitch < 0:
                 self.hCOUNTER += 1
-                if self.hCOUNTER >= 20:
-                    cv2.putText(self.debug_frame,"SLEEP!!!",(self.face_coords[count][0],self.face_coords[count][1]-10),cv2.FONT_HERSHEY_COMPLEX,1,(0,0,255),3)
+                # if self.hCOUNTER >= 20:
+                #     cv2.putText(self.debug_frame,"SLEEP!!!",(self.face_coords[count][0],self.face_coords[count][1]-10),cv2.FONT_HERSHEY_COMPLEX,1,(0,0,255),3)
             else:
                 if self.hCOUNTER >= 3:
                     self.hTOTAL += 1
@@ -301,15 +300,23 @@ class Main:
             ear = (left_ear + right_ear) / 2.0
             if ear < 0.15:# Eye aspect ratio：0.15
                 self.COUNTER += 1
-                if self.COUNTER >= 20:
-                    cv2.putText(self.debug_frame, "SLEEP!!!", (self.face_coords[count][0], self.face_coords[count][1]-10),cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
-                    self.alert.value = 1
+                # if self.COUNTER >= 20:
+                #     cv2.putText(self.debug_frame, "SLEEP!!!", (self.face_coords[count][0], self.face_coords[count][1]-10),cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
+                #     self.alert.value = 1
             else:
                 # If it is less than the threshold 3 times in a row, it means that an eye blink has been performed
                 if self.COUNTER >= 3:# Threshold: 3
                     self.TOTAL += 1
                 # Reset the eye frame counter
                 self.COUNTER = 0
+
+            if (
+                self.hCOUNTER >=  DETECTION_CONFIG.HEAD_TILT_COUNT or 
+                self.COUNTER > DETECTION_CONFIG.HEAD_TILT_COUNT
+            ):
+                cv2.putText(self.debug_frame, "SLEEP!!!", (self.face_coords[count][0], self.face_coords[count][1]-10),cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
+                self.alert.value = 1                
+
 
             mouth_ratio = self.mouth_aspect_ratio(mouth)
             if mouth_ratio > 0.5:
@@ -320,7 +327,12 @@ class Main:
                 self.mCOUNTER = 0
 
             cv2.putText(self.debug_frame,"eye:{:d},mouth:{:d},head:{:d}".format(self.TOTAL,self.mTOTAL,self.hTOTAL),(10,40),cv2.FONT_HERSHEY_COMPLEX_SMALL,0.5,(255,0,0,))
-            if self.TOTAL >= 8 or self.mTOTAL>=config.YAWN_COUNT or self.hTOTAL >= config.HEAD_DOSE_COUNT:
+            
+            if (
+                self.TOTAL >= DETECTION_CONFIG.FATIGUE_TOTAL_COUNT or
+                self.mTOTAL>=DETECTION_CONFIG.YAWN_COUNT or 
+                self.hTOTAL >= DETECTION_CONFIG.HEAD_DOSE_COUNT
+            ):
                 cv2.putText(self.debug_frame, "Danger!!!", (100, 200),cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
                 self.alert.value = 1
 
