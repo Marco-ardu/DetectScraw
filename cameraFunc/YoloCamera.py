@@ -186,6 +186,10 @@ def runYoloCamera(frame_queue, command, alert):
                 alert.value = DETECTION_CONFIG.RED_ALERT_SIGNAL
             elif person_distance < DETECTION_CONFIG.YELLOW_ALERT_DISTANCE:
                 alert.value = DETECTION_CONFIG.YELLOW_ALERT_SIGNAL  
+        
+        #crop black out of image
+        frame = frame[91:325, 0:416]
+        
         try:
             frame_queue.put_nowait(frame)
         except queue.Full:

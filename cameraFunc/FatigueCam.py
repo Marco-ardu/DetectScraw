@@ -10,6 +10,7 @@ import time
 import math
 import DETECTION_CONFIG
 import queue
+import multiprocessing as mp
 
 # Get rotation vector and translation vector                        
 def get_pose_estimation(img_size, image_points ):
@@ -155,19 +156,30 @@ def frame_norm(frame, *xy_vals):
 def create_pipeline(camera):
     print("Creating pipeline...")
     pipeline = depthai.Pipeline()
-    if camera:
-        print("Creating Color Camera...")
-        cam = pipeline.createColorCamera()
-        cam.setPreviewSize(300,300)
-        cam.setResolution(depthai.ColorCameraProperties.SensorResolution.THE_1080_P)
-        cam.setInterleaved(False)
-        cam.setBoardSocket(depthai.CameraBoardSocket.RGB)
-        cam_xout = pipeline.createXLinkOut()
-        cam_xout.setStreamName("cam_out")
-        cam.preview.link(cam_xout.input)
-        first_model(pipeline,cam,"models/face-detection-retail-0004_openvino_2020_1_4shave.blob","face")
-    else:
-        models(pipeline,"models/face-detection-retail-0004_openvino_2020_1_4shave.blob","face")
+
+    print("Creating Color Camera...")
+    cam = pipeline.createColorCamera()
+    manip = pipeline.createImageManip()
+
+    cam.setPreviewSize(300, 300)
+    cam.setResolution(depthai.ColorCameraProperties.SensorResolution.THE_1080_P)
+    cam.setInterleaved(False)
+    cam.setBoardSocket(depthai.CameraBoardSocket.RGB)
+    
+    manip.initialConfig.setResizeThumbnail(300, 300)
+    manip.initialConfig.setFrameType(depthai.ImgFrame.Type.BGR888p)
+    manip.inputImage.setBlocking(False)
+
+    manipOut = pipeline.createXLinkOut()
+    manipOut.setStreamName("manip")
+
+    cam_xout = pipeline.createXLinkOut()
+    cam_xout.setStreamName("cam_out")
+    
+    cam.preview.link(manip.inputImage)
+    cam.preview.link(cam_xout.input)
+    manip.out.link(manipOut.input)
+    first_model(pipeline,cam,"models/face-detection-retail-0004_openvino_2020_1_4shave.blob","face")    
     models(pipeline,"models/face_landmark_160x160_openvino_2020_1_4shave.blob","land68")
     return pipeline
 
@@ -213,24 +225,21 @@ class Main:
         found, device_info = depthai.Device.getDeviceByMxId("14442C1051EF97CD00")
         if not found:
             raise RuntimeError("device not found")
+
         self.device = depthai.Device(self.pipeline, device_info)
         print("Starting pipeline...")
-        if self.camera:
-            self.cam_out = self.device.getOutputQueue("cam_out", 4, False)
-        else:
-            self.face_in = self.device.getInputQueue("face_in",4,False)
+        self.cam_out = self.device.getOutputQueue("cam_out", 4, False)
+
         self.face_nn = self.device.getOutputQueue("face_nn",4,False)
         self.land68_in = self.device.getInputQueue("land68_in",4,False)
         self.land68_nn = self.device.getOutputQueue("land68_nn",4,False)
+        self.qManip = self.device.getOutputQueue(name="manip", maxSize=4, blocking=False)
 
     def draw_bbox(self, bbox, color):
         cv2.rectangle(self.debug_frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
 
     def run_face(self):
-        if self.camera:
-            nn_data = self.face_nn.tryGet()
-        else:
-            nn_data = run_nn(self.face_in, self.face_nn, {"data": to_planar(self.frame, (300, 300))})
+        nn_data = self.face_nn.tryGet()
         results = to_bbox_result(nn_data)
         self.face_coords = [
             frame_norm(self.frame, *obj[3:7])
@@ -357,7 +366,6 @@ class Main:
         return (A + B) / (2.0 * C)
 
     def parse(self):
-        
         self.debug_frame = self.frame.copy()
 
         face_success = self.run_face()
@@ -375,10 +383,7 @@ class Main:
 
         if self.command.value == 0:
             raise StopIteration()
-        # cv2.imshow("Camera_view", cv2.resize(self.debug_frame, ( int(900),  int(900 / aspect_ratio))))
-        # if cv2.waitKey(1) == ord('q'):
-        #     cv2.destroyAllWindows()
-        #     raise StopIteration()
+
 
     def run_video(self):
         cap = cv2.VideoCapture(str(Path(self.file).resolve().absolute()))
@@ -386,7 +391,6 @@ class Main:
             read_correctly, self.frame = cap.read()
             if not read_correctly:
                 break
-
             try:
                 self.parse()
             except StopIteration:
@@ -413,5 +417,26 @@ def runFatigueCam(frame_queue, command, alert):
     Cam.run()
     print('all end')
 
+def main():
+    frame_queue = mp.Queue(4)
+    command = mp.Value('i', 1)
+    alert = mp.Value('i', 0)
+
+    proccess = mp.Process(target=runFatigueCam, args=(frame_queue, command, alert, ))
+    proccess.start()
+
+    while True:
+        try:
+            frame = frame_queue.get_nowait()
+            cv2.imshow('frame', frame)
+        except queue.Empty or queue.Full:
+            pass
+
+        if cv2.waitKey(1) == ord('q'):
+            command.value = 0
+            break
+    
+    proccess.kill()
+
 if __name__ == '__main__':
-    Main(camera=True).run()
+    main()
