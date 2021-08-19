@@ -24,6 +24,7 @@ class MainController:
         self.view.LabelFront.clear()
         self.view.LabelRear.clear()
         self.view.LabelDriver.clear()
+        self.view.labelMessage.setText(self.view.defaultWarnMessage)
 
 
 

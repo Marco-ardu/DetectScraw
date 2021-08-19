@@ -159,26 +159,16 @@ def create_pipeline(camera):
 
     print("Creating Color Camera...")
     cam = pipeline.createColorCamera()
-    manip = pipeline.createImageManip()
 
     cam.setPreviewSize(300, 300)
     cam.setResolution(depthai.ColorCameraProperties.SensorResolution.THE_1080_P)
     cam.setInterleaved(False)
     cam.setBoardSocket(depthai.CameraBoardSocket.RGB)
-    
-    manip.initialConfig.setResizeThumbnail(300, 300)
-    manip.initialConfig.setFrameType(depthai.ImgFrame.Type.BGR888p)
-    manip.inputImage.setBlocking(False)
-
-    manipOut = pipeline.createXLinkOut()
-    manipOut.setStreamName("manip")
 
     cam_xout = pipeline.createXLinkOut()
     cam_xout.setStreamName("cam_out")
     
-    cam.preview.link(manip.inputImage)
     cam.preview.link(cam_xout.input)
-    manip.out.link(manipOut.input)
     first_model(pipeline,cam,"models/face-detection-retail-0004_openvino_2020_1_4shave.blob","face")    
     models(pipeline,"models/face_landmark_160x160_openvino_2020_1_4shave.blob","land68")
     return pipeline
@@ -233,7 +223,6 @@ class Main:
         self.face_nn = self.device.getOutputQueue("face_nn",4,False)
         self.land68_in = self.device.getInputQueue("land68_in",4,False)
         self.land68_nn = self.device.getOutputQueue("land68_nn",4,False)
-        self.qManip = self.device.getOutputQueue(name="manip", maxSize=4, blocking=False)
 
     def draw_bbox(self, bbox, color):
         cv2.rectangle(self.debug_frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
