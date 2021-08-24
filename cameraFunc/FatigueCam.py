@@ -164,6 +164,7 @@ def create_pipeline(camera):
     cam.setResolution(depthai.ColorCameraProperties.SensorResolution.THE_1080_P)
     cam.setInterleaved(False)
     cam.setBoardSocket(depthai.CameraBoardSocket.RGB)
+    cam.setFps(10)
 
     cam_xout = pipeline.createXLinkOut()
     cam_xout.setStreamName("cam_out")
@@ -212,7 +213,7 @@ class Main:
 
     def start_pipeline(self):
         #self.device = depthai.Device(self.pipeline)
-        found, device_info = depthai.Device.getDeviceByMxId("14442C1051EF97CD00")
+        found, device_info = depthai.Device.getDeviceByMxId(DETECTION_CONFIG.DRIVER_CAMERA_ID)
         if not found:
             raise RuntimeError("device not found")
 

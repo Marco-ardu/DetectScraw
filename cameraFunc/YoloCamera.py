@@ -41,8 +41,6 @@ def runYoloCamera(frame_queue, command, alert):
         "teddy bear",     "hair drier", "toothbrush"
     ]
 
-    syncNN = True
-
     # Create pipeline
     pipeline = dai.Pipeline()
 
@@ -67,10 +65,9 @@ def runYoloCamera(frame_queue, command, alert):
     manipOut.setStreamName("manip")
 
     # Properties
-    #camRgb.setPreviewSize(416, 416)
     camRgb.setPreviewSize(1080, 720)
     camRgb.setPreviewKeepAspectRatio(True)
-    #camRgb.setVideoSize(1080, 720)
+    camRgb.setFps(10)
     camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
     camRgb.setInterleaved(False)
     camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
@@ -108,12 +105,7 @@ def runYoloCamera(frame_queue, command, alert):
 
     camRgb.preview.link(manip.inputImage)
     manip.out.link(spatialDetectionNetwork.input)
-    #camRgb.preview.link(spatialDetectionNetwork.input)
-    if syncNN:
-        spatialDetectionNetwork.passthrough.link(xoutRgb.input)
-    else:
-        camRgb.preview.link(xoutRgb.input)
-
+    spatialDetectionNetwork.passthrough.link(xoutRgb.input)
     spatialDetectionNetwork.out.link(xoutNN.input)
     spatialDetectionNetwork.boundingBoxMapping.link(xoutBoundingBoxDepthMapping.input)
 
@@ -144,12 +136,6 @@ def runYoloCamera(frame_queue, command, alert):
         frame = inPreview.getCvFrame()
 
         counter+=1
-        # current_time = time.monotonic()
-        # if (current_time - startTime) > 1 :
-        #     fps = counter / (current_time - startTime)
-        #     counter = 0
-        #     startTime = current_time
-
         detections = inDet.detections
 
         # If the frame is available, draw bounding boxes on it and show the frame

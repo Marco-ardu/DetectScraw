@@ -12,6 +12,7 @@ class MainController:
         self.view.show()
 
     def btnStart_clicked(self):
+        self.view.btnStart.setEnabled(False)
         self.view.Worker = Worker()
         self.view.Worker.start()
         self.view.Worker.FrontImage.connect(self.view.UpdateFrontSlot)
@@ -25,6 +26,7 @@ class MainController:
         self.view.LabelRear.clear()
         self.view.LabelDriver.clear()
         self.view.labelMessage.setText(self.view.defaultWarnMessage)
+        self.view.btnStart.setEnabled(True)
 
 
 
