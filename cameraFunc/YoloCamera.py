@@ -8,7 +8,7 @@ import numpy as np
 import time
 import sys
 import queue
-import DETECTION_CONFIG
+import DETECTION_CONFIG, PRODUCTION_CONFIG
 
 '''
 Spatial Tiny-yolo example
@@ -175,6 +175,9 @@ def runYoloCamera(frame_queue, command, alert):
         
         #crop black out of image
         frame = frame[91:325, 0:416]
+
+        if PRODUCTION_CONFIG.PRODUCTION is True:
+            frame = cv2.resize(frame, (PRODUCTION_CONFIG.RearImage_Width, PRODUCTION_CONFIG.RearImage_Height), interpolation=cv2.INTER_LINEAR)
         
         try:
             frame_queue.put_nowait(frame)
