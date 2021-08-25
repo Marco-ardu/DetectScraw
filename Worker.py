@@ -1,26 +1,36 @@
 from PyQt5.QtCore import QThread, pyqtSignal
 
-import multiprocessing as mp
 import numpy
+import multiprocessing as mp
 
-from model import AlertModel, ProccessModel
+from model.AlertModel import WarnAlert
+from model.ProccessModel import BasicCameraProccess
+from factories import CameraFactory, AlertFactory
 
 
 class Worker(QThread):
     FrontImage = pyqtSignal(numpy.ndarray)
     RearImage = pyqtSignal(numpy.ndarray)
     DriverImage = pyqtSignal(numpy.ndarray)
-    Alert = pyqtSignal(AlertModel.WarnAlert)
+    Alert = pyqtSignal(WarnAlert)
 
-    command = mp.Value('i', 1)
+    command = mp.Value('i', 0)
 
     def run(self):
 
         self.command.value = 1
 
-        DriverCamera = ProccessModel.DriverCamera(self.command, AlertModel.AlertText_DriverFocus, self.DriverImage, self.Alert)
-        FrontCamera = ProccessModel.FrontCamera(self.command, AlertModel.AlertText_PedestrianFront, self.FrontImage, self.Alert)
-        RearCamera = ProccessModel.RearCamera(self.command, AlertModel.AlertText_PedestrianRear, self.RearImage, self.Alert)
+        FatigueCam = CameraFactory.CameraFactory(CameraFactory.TextFatigueCamera)
+        DriverAlert = AlertFactory.AlertFactory(AlertFactory.AlertText_DriverFocus)
+        DriverCamera = BasicCameraProccess(self.command, FatigueCam, DriverAlert, self.DriverImage, self.Alert)
+
+        YoloCam = CameraFactory.CameraFactory(CameraFactory.TextYoloCamera)
+        FrontAlert = AlertFactory.AlertFactory(AlertFactory.AlertText_PedestrianFront)
+        FrontCamera = BasicCameraProccess(self.command, YoloCam, FrontAlert, self.FrontImage, self.Alert)
+
+        PedestrianCam = CameraFactory.CameraFactory(CameraFactory.TextPedestrianCamera)
+        RearAlert = AlertFactory.AlertFactory(AlertFactory.AlertText_PedestrianRear)
+        RearCamera = BasicCameraProccess(self.command, PedestrianCam, RearAlert, self.RearImage, self.Alert)
 
         Cameras = [DriverCamera, FrontCamera, RearCamera]
         

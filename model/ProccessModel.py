@@ -3,9 +3,11 @@ from model.AlertModel import WarnAlert
 from PyQt5.QtCore import pyqtSignal
 import multiprocessing as mp
 import queue
-from cameraFunc import YoloCamera, FatigueCam, PedestrianCamera
+
 from model import AlertModel
 import CAMERA_CONFIG
+
+
 
 class ICameraProcess(ABC):
     @abstractclassmethod
@@ -21,16 +23,19 @@ class ICameraProcess(ABC):
         return NotImplemented
 
 class BasicCameraProccess(ICameraProcess):
-    def __init__(self, command: mp.Value, alertType:str, ImageSignal: pyqtSignal, AlertSignal:pyqtSignal) -> None:
+    def __init__(self, command: mp.Value, camera: object, alert:AlertModel.WarnAlert, ImageSignal: pyqtSignal, AlertSignal:pyqtSignal) -> None:
         super().__init__()
         self.command = command
         self.ImageSignal = ImageSignal
         self.AlertSignal = AlertSignal
-        self.WarnAlert = AlertModel.AlertFactory(alertType)
+        self.WarnAlert = alert
 
         self.alert = mp.Value('i', 0)
         self.queue = mp.Queue(4)
-        self.proccess = None
+        self.proccess = mp.Process(target=camera, args=(self.queue, self.command, self.alert))   
+
+    def runCamera(self):
+        self.proccess.start()
 
     def getFrame(self):
         try:
@@ -57,23 +62,4 @@ class BasicCameraProccess(ICameraProcess):
         self.queue.close()
         self.proccess.kill()
         
-
-class FrontCamera(BasicCameraProccess):       
-        
-    def runCamera(self):
-        self.proccess = mp.Process(target=YoloCamera.runYoloCamera, args=(self.queue, self.command, self.alert))        
-        self.proccess.start()
-
-
-class RearCamera(BasicCameraProccess):       
-
-    def runCamera(self):
-        self.proccess = mp.Process(target=PedestrianCamera.runPedestrianCamera, args=(self.queue, self.command, self.alert))        
-        self.proccess.start()    
-
-class DriverCamera(BasicCameraProccess):      
-
-    def runCamera(self):
-        self.proccess = mp.Process(target=FatigueCam.runFatigueCam, args=(self.queue, self.command, self.alert))        
-        self.proccess.start()
 
