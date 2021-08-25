@@ -10,18 +10,20 @@ import DETECTION_CONFIG
 
 from cameraFunc import YoloCamera, FatigueCam, PedestrianCamera
 
-from Model import WarnAlert, PedestrianAlert, DriverAlert
+import Model
 
 
 class Worker(QThread):
     FrontImage = pyqtSignal(numpy.ndarray)
     RearImage = pyqtSignal(numpy.ndarray)
     DriverImage = pyqtSignal(numpy.ndarray)
-    Alert = pyqtSignal(WarnAlert)
+    Alert = pyqtSignal(Model.WarnAlert)
 
     command = mp.Value('i', 1)
 
     def run(self):
+        self.STATUS = 0
+
         self.command = mp.Value('i', 1)
         driver_alert = mp.Value('i', 0)
         front_alert_value = mp.Value('i', 0)
@@ -39,6 +41,7 @@ class Worker(QThread):
         rear_proccess.start()
 
         self.ThreadActive = True
+        self.STATUS = 1
 
         while self.ThreadActive:
             try:
@@ -60,19 +63,19 @@ class Worker(QThread):
                 pass
 
             if front_alert_value.value != DETECTION_CONFIG.NO_ALERT_SIGNAL:
-                p = PedestrianAlert()
+                p = Model.PedestrianFrontAlert()
                 p = AlertFactory(p, front_alert_value.value)
                 self.Alert.emit(p)
                 front_alert_value.value = DETECTION_CONFIG.NO_ALERT_SIGNAL
 
             if rear_alert_value.value != DETECTION_CONFIG.NO_ALERT_SIGNAL:
-                p = PedestrianAlert()
+                p = Model.PedestrianRearAlert()
                 p = AlertFactory(p, rear_alert_value.value)
                 self.Alert.emit(p)
                 rear_alert_value.value = DETECTION_CONFIG.NO_ALERT_SIGNAL
 
             if driver_alert.value != DETECTION_CONFIG.NO_ALERT_SIGNAL:
-                d = DriverAlert()
+                d = Model.DriverAlert()
                 d = AlertFactory(d, driver_alert.value)
                 self.Alert.emit(d)
                 driver_alert.value = DETECTION_CONFIG.NO_ALERT_SIGNAL
@@ -85,6 +88,7 @@ class Worker(QThread):
         driver_proccess.kill()
         front_proccess.kill()
         rear_proccess.kill()
+        self.STATUS = 0
 
         self.quit()
 

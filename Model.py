@@ -20,12 +20,15 @@ class WarnAlert(ABC):
         cls.warn_color = 'red'    
 
 
-class PedestrianAlert(WarnAlert):
-    warn_message = '注意行人'
-    warn_file = 'sound/pedestrian.wav'
+class PedestrianFrontAlert(WarnAlert):
+    warn_message = '注意前方行人'
+    warn_file = 'sound/pedestrian_front.wav'
 
+class PedestrianRearAlert(WarnAlert):
+    warn_message = '注意後方行人'
+    warn_file = 'sound/pedestrian_rear.wav'
 
 class DriverAlert(WarnAlert):
     warn_message = '駕駛注意'
-    warn_file = 'sound/focus.wav'
+    warn_file = 'sound/driver_focus.wav'
 

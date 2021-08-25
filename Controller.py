@@ -1,5 +1,5 @@
 from View import ViewWindow
-from Model import Model, PedestrianAlert, WarnAlert
+from Model import Model
 from Worker import Worker
 
 class MainController:
@@ -22,6 +22,8 @@ class MainController:
 
     def btnStop_clicked(self):
         self.view.Worker.stop()
+        while self.view.Worker.STATUS != 0:
+            pass
         self.view.setDefaultView()
         self.view.btnStart.setEnabled(True)
 

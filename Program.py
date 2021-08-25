@@ -3,7 +3,7 @@ import sys
 from PyQt5.QtWidgets import QApplication
 from Controller import MainController
 from View import ViewWindow
-from Model import Model, PedestrianAlert
+from Model import Model
 import multiprocessing as mp
 
 if __name__ == "__main__":
