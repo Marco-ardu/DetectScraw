@@ -1,4 +1,4 @@
-PRODUCTION = True
+PRODUCTION = False
 
 FrontImage_Height = 516
 FrontImage_Width = 936
@@ -7,3 +7,4 @@ RearImage_Width = 936
 DriverImage_Height = 1053
 FrontImage_Width = 936
 
+MainWindowDimention = (1028,846)

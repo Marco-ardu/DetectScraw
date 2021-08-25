@@ -121,7 +121,6 @@ def runPedestrianCamera(frame_queue, command, alert):
         cv2.imshow(name, frame)
 
     while command.value != 0:
-
         inRgb = qRgb.get()
         inDet = qDet.get()
 
