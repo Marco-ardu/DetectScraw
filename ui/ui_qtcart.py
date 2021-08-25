@@ -127,7 +127,7 @@ class Ui_MainWindow(object):
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
         self.labelMessage = QtWidgets.QLabel(self.centralwidget)
-        self.labelMessage.setMaximumSize(QtCore.QSize(16777215, 50))
+        self.labelMessage.setMaximumSize(QtCore.QSize(16777215, 90))
         font = QtGui.QFont()
         font.setFamily("微軟正黑體")
         font.setPointSize(40)
