@@ -21,12 +21,12 @@ class ICameraProcess(ABC):
         return NotImplemented
 
 class BasicCameraProccess(ICameraProcess):
-    def __init__(self, command: mp.Value, ImageSignal: pyqtSignal, AlertSignal:pyqtSignal, **kargs) -> None:
+    def __init__(self, command: mp.Value, alertType:str, ImageSignal: pyqtSignal, AlertSignal:pyqtSignal) -> None:
         super().__init__()
         self.command = command
         self.ImageSignal = ImageSignal
         self.AlertSignal = AlertSignal
-        self.WarnAlert = WarnAlert()
+        self.WarnAlert = AlertModel.AlertFactory(alertType)
 
         self.alert = mp.Value('i', 0)
         self.queue = mp.Queue(4)
@@ -61,7 +61,6 @@ class BasicCameraProccess(ICameraProcess):
 class FrontCamera(BasicCameraProccess):       
         
     def runCamera(self):
-        self.WarnAlert = AlertModel.AlertFactory(AlertModel.AlertText_PedestrianFront)
         self.proccess = mp.Process(target=YoloCamera.runYoloCamera, args=(self.queue, self.command, self.alert))        
         self.proccess.start()
 
@@ -69,14 +68,12 @@ class FrontCamera(BasicCameraProccess):
 class RearCamera(BasicCameraProccess):       
 
     def runCamera(self):
-        self.WarnAlert = AlertModel.AlertFactory(AlertModel.AlertText_PedestrianRear)
         self.proccess = mp.Process(target=PedestrianCamera.runPedestrianCamera, args=(self.queue, self.command, self.alert))        
         self.proccess.start()    
 
 class DriverCamera(BasicCameraProccess):      
 
     def runCamera(self):
-        self.WarnAlert = AlertModel.AlertFactory(AlertModel.AlertText_DriverFocus)
         self.proccess = mp.Process(target=FatigueCam.runFatigueCam, args=(self.queue, self.command, self.alert))        
         self.proccess.start()
 

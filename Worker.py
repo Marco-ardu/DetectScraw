@@ -18,9 +18,9 @@ class Worker(QThread):
 
         self.command.value = 1
 
-        DriverCamera = ProccessModel.DriverCamera(self.command, self.DriverImage, self.Alert)
-        FrontCamera = ProccessModel.FrontCamera(self.command, self.FrontImage, self.Alert)
-        RearCamera = ProccessModel.RearCamera(self.command, self.RearImage, self.Alert)
+        DriverCamera = ProccessModel.DriverCamera(self.command, AlertModel.AlertText_DriverFocus, self.DriverImage, self.Alert)
+        FrontCamera = ProccessModel.FrontCamera(self.command, AlertModel.AlertText_PedestrianFront, self.FrontImage, self.Alert)
+        RearCamera = ProccessModel.RearCamera(self.command, AlertModel.AlertText_PedestrianRear, self.RearImage, self.Alert)
 
         Cameras = [DriverCamera, FrontCamera, RearCamera]
         
