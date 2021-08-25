@@ -34,6 +34,7 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
             # self.LabelRear.setStyleSheet("background-color: red")
             self.qs.play()
 
+    @pyqtSlot()
     def setDefaultView(self):
 
         self.LabelFront.clear()
@@ -44,6 +45,7 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         self.LabelRear.setText(self.defaultRearLabelText)
         self.LabelDriver.setText(self.defaultDriverLabelText)
         self.labelMessage.setText(self.defaultWarnMessage)
+
 
     @pyqtSlot(np.ndarray)
     def UpdateFrontSlot(self, Image):

@@ -1,16 +1,15 @@
 from View import ViewWindow
-from Model import Model
 from Worker import Worker
 
 class MainController:
-    def __init__(self, model: Model, view: ViewWindow) -> None:
-        self.model = model
+    def __init__(self, view: ViewWindow) -> None:
         self.view = view
 
     def start(self):
         self.view.setup(self)
         self.view.show()
         self.view.Worker = Worker()
+        self.view.Worker.finished.connect(self.view.setDefaultView)
 
     def btnStart_clicked(self):
         self.view.btnStart.setEnabled(False)
@@ -22,9 +21,6 @@ class MainController:
 
     def btnStop_clicked(self):
         self.view.Worker.stop()
-        while self.view.Worker.STATUS != 0:
-            pass
-        self.view.setDefaultView()
         self.view.btnStart.setEnabled(True)
 
 

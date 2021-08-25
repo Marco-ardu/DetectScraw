@@ -12,13 +12,13 @@ import cv2
 import depthai as dai
 import numpy as np
 import time
-import DETECTION_CONFIG
+import CAMERA_CONFIG
 import PRODUCTION_CONFIG
 import multiprocessing as mp
 import queue
 
 # Get argument first
-nnPath = 'models/yolo-v4-tiny-tf_openvino_2021.4_6shave.blob'
+nnPath = 'cameraFunc/models/yolo-v4-tiny-tf_openvino_2021.4_6shave.blob'
 
 if not Path(nnPath).exists():
     raise FileNotFoundError(
@@ -94,7 +94,7 @@ def runPedestrianCamera(frame_queue, command, alert):
 
     # Connect to device and start pipeline
     found, device_info = dai.Device.getDeviceByMxId(
-        DETECTION_CONFIG.REAR_CAMERA_ID)
+        CAMERA_CONFIG.REAR_CAMERA_ID)
     if not found:
         raise RuntimeError("device not found")
     device = dai.Device(pipeline, device_info)
@@ -162,13 +162,13 @@ def runPedestrianCamera(frame_queue, command, alert):
                           (bbox[2], bbox[3]), color, 2)
 
             if alert.value == 0:
-                alert.value = DETECTION_CONFIG.RED_ALERT_SIGNAL
+                alert.value = CAMERA_CONFIG.RED_ALERT_SIGNAL
 
         # crop black out of image
         frame = frame[91:325, 0:416]
         if PRODUCTION_CONFIG.PRODUCTION is True:
             frame = cv2.resize(
-                frame, (PRODUCTION_CONFIG.RearImage_Width, PRODUCTION_CONFIG.RearImage_Height), interpolation=cv2.INTER_LINEAR)
+                frame, (CAMERA_CONFIG.RearImage_Width, CAMERA_CONFIG.RearImage_Height), interpolation=cv2.INTER_LINEAR)
 
         try:
             frame_queue.put_nowait(frame)

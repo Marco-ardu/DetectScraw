@@ -8,7 +8,7 @@ import numpy as np
 import time
 import sys
 import queue
-import DETECTION_CONFIG, PRODUCTION_CONFIG
+import CAMERA_CONFIG, PRODUCTION_CONFIG
 
 '''
 Spatial Tiny-yolo example
@@ -20,7 +20,7 @@ Spatial Tiny-yolo example
 def runYoloCamera(frame_queue, command, alert):
     # Get argument first
     #nnBlobPath = str((Path(__file__).parent / Path('models/yolo-v4-tiny-tf_openvino_2021.4_6shave.blob')).resolve().absolute())
-    nnBlobPath = 'models/yolo-v4-tiny-tf_openvino_2021.4_6shave.blob'
+    nnBlobPath = 'cameraFunc/models/yolo-v4-tiny-tf_openvino_2021.4_6shave.blob'
 
     if not Path(nnBlobPath).exists():
         raise FileNotFoundError(f'Required file/s not found, please run "{sys.executable} install_requirements.py"')
@@ -112,7 +112,7 @@ def runYoloCamera(frame_queue, command, alert):
     stereo.depth.link(spatialDetectionNetwork.inputDepth)
     spatialDetectionNetwork.passthroughDepth.link(xoutDepth.input)
 
-    found, device_info = dai.Device.getDeviceByMxId(DETECTION_CONFIG.FRONT_CAMERA_ID)
+    found, device_info = dai.Device.getDeviceByMxId(CAMERA_CONFIG.FRONT_CAMERA_ID)
     if not found:
         raise RuntimeError("device not found")
     device = dai.Device(pipeline, device_info)
@@ -168,16 +168,16 @@ def runYoloCamera(frame_queue, command, alert):
             if alert.value != 0:
                 continue
 
-            if person_distance < DETECTION_CONFIG.RED_ALERT_DISTANCE:
-                alert.value = DETECTION_CONFIG.RED_ALERT_SIGNAL
-            elif person_distance < DETECTION_CONFIG.YELLOW_ALERT_DISTANCE:
-                alert.value = DETECTION_CONFIG.YELLOW_ALERT_SIGNAL  
+            if person_distance < CAMERA_CONFIG.RED_ALERT_DISTANCE:
+                alert.value = CAMERA_CONFIG.RED_ALERT_SIGNAL
+            elif person_distance < CAMERA_CONFIG.YELLOW_ALERT_DISTANCE:
+                alert.value = CAMERA_CONFIG.YELLOW_ALERT_SIGNAL  
         
         #crop black out of image
         frame = frame[91:325, 0:416]
 
         if PRODUCTION_CONFIG.PRODUCTION is True:
-            frame = cv2.resize(frame, (PRODUCTION_CONFIG.FrontImage_Width, PRODUCTION_CONFIG.FrontImage_Height), interpolation=cv2.INTER_LINEAR)
+            frame = cv2.resize(frame, (CAMERA_CONFIG.FrontImage_Width, CAMERA_CONFIG.FrontImage_Height), interpolation=cv2.INTER_LINEAR)
         
         try:
             frame_queue.put_nowait(frame)

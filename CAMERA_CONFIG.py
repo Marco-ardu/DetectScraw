@@ -13,3 +13,13 @@ HEAD_DOSE_COUNT = 5
 HEAD_TILT_COUNT = 5
 YAWN_COUNT = 5
 FATIGUE_TOTAL_COUNT = 8
+
+# 234:416
+FrontImage_Height = 540
+FrontImage_Width = 960
+RearImage_Height = 540
+RearImage_Width = 960
+DriverImage_Height = 420
+DriverImage_Width = 540
+
+MainWindowDimention = (1028, 846)

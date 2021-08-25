@@ -1,11 +1,8 @@
 from abc import ABC, abstractclassmethod
-class Model:
-    indexOrder = 0
 
-    def getFileName(IdofFile:int):
-        img_id = IdofFile % 2 + 1
-        return f'test_img/{img_id}.jpg'
-
+AlertText_PedestrianFront = 'PedestrianFront'
+AlertText_PedestrianRear = 'PedestrianRear'
+AlertText_DriverFocus = 'DriverFocus'
 
 class WarnAlert(ABC):
     warn_message = 'abstract warning'
@@ -32,3 +29,12 @@ class DriverAlert(WarnAlert):
     warn_message = '駕駛注意'
     warn_file = 'sound/driver_focus.wav'
 
+
+def AlertFactory(AlertIndex):
+    AlertDict = {
+        AlertText_PedestrianFront : PedestrianFrontAlert(),
+        AlertText_PedestrianRear : PedestrianRearAlert(),
+        AlertText_DriverFocus : DriverAlert()
+    }    
+
+    return AlertDict[AlertIndex]
