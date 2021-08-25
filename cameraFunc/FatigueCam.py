@@ -1,3 +1,4 @@
+import PRODUCTION_CONFIG
 import argparse
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -364,7 +365,7 @@ class Main:
                 self.run_land68(self.face_frame[i],i)
         
         aspect_ratio = self.frame.shape[1] / self.frame.shape[0]
-        frame_to_queue = cv2.resize(self.debug_frame, ( int(900),  int(900 / aspect_ratio)))
+        frame_to_queue = cv2.resize(self.debug_frame, ( PRODUCTION_CONFIG.DriverImage_Width, PRODUCTION_CONFIG.DriverImage_Width))
 
         try:
             self.frame_queue.put_nowait(frame_to_queue)
