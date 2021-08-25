@@ -177,7 +177,7 @@ def runYoloCamera(frame_queue, command, alert):
         frame = frame[91:325, 0:416]
 
         if PRODUCTION_CONFIG.PRODUCTION is True:
-            frame = cv2.resize(frame, (PRODUCTION_CONFIG.RearImage_Width, PRODUCTION_CONFIG.RearImage_Height), interpolation=cv2.INTER_LINEAR)
+            frame = cv2.resize(frame, (PRODUCTION_CONFIG.FrontImage_Width, PRODUCTION_CONFIG.FrontImage_Height), interpolation=cv2.INTER_LINEAR)
         
         try:
             frame_queue.put_nowait(frame)

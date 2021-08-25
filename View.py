@@ -30,8 +30,9 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         self.qs = QSound('sound/welcome.wav', parent=self.labelMessage)
         if PRODUCTION_CONFIG.PRODUCTION is True:
             self.showMaximized()
+            # self.LabelFront.setStyleSheet("background-color: yellow")
+            # self.LabelRear.setStyleSheet("background-color: red")
             self.qs.play()
-
 
     def setDefaultView(self):
 
@@ -42,16 +43,16 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         self.LabelFront.setText(self.defaultFrontLabelText)
         self.LabelRear.setText(self.defaultRearLabelText)
         self.LabelDriver.setText(self.defaultDriverLabelText)
-        self.labelMessage.setText(self.defaultWarnMessage)                
+        self.labelMessage.setText(self.defaultWarnMessage)
 
     @pyqtSlot(np.ndarray)
     def UpdateFrontSlot(self, Image):
         self.setImg(Image, self.LabelFront)
-    
+
     @pyqtSlot(np.ndarray)
     def UpdateRearSlot(self, Image):
         self.setImg(Image, self.LabelRear)
-    
+
     @pyqtSlot(np.ndarray)
     def UpdateDriverSlot(self, Image):
         self.setImg(Image, self.LabelDriver)
@@ -70,17 +71,20 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         self.qs.play()
 
         for i in range(0, 1800, 600):
-            QTimer.singleShot((0.5 * i), lambda: self.labelMessage.setStyleSheet(f"background-color: {WarnAlert.warn_color}; font-family:微軟正黑體; font-size:40pt;font-weight: bold;"))
-            QTimer.singleShot(i, lambda: self.labelMessage.setStyleSheet(self.defaultStyleSheet))
+            QTimer.singleShot((0.5 * i), lambda: self.labelMessage.setStyleSheet(
+                f"background-color: {WarnAlert.warn_color}; font-family:微軟正黑體; font-size:40pt;font-weight: bold;"))
+            QTimer.singleShot(
+                i, lambda: self.labelMessage.setStyleSheet(self.defaultStyleSheet))
 
     def setImg(self, frame, label):
-        
+
         Image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        Pic = QImage(Image.data, Image.shape[1], Image.shape[0], QImage.Format_RGB888)
+        Pic = QImage(Image.data, Image.shape[1],
+                     Image.shape[0], QImage.Format_RGB888)
 
         if PRODUCTION_CONFIG.PRODUCTION is not True:
             h, w = label.size().height(), label.size().width()
-            Pic = Pic.scaled(w,h, Qt.KeepAspectRatio)
+            Pic = Pic.scaled(w, h, Qt.KeepAspectRatio)
 
-        #如果有需要再獨立 目前先放在這一併執行
+        # 如果有需要再獨立 目前先放在這一併執行
         label.setPixmap(QPixmap.fromImage(Pic))

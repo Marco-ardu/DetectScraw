@@ -12,7 +12,8 @@ import cv2
 import depthai as dai
 import numpy as np
 import time
-import DETECTION_CONFIG, PRODUCTION_CONFIG
+import DETECTION_CONFIG
+import PRODUCTION_CONFIG
 import multiprocessing as mp
 import queue
 
@@ -20,7 +21,8 @@ import queue
 nnPath = 'models/yolo-v4-tiny-tf_openvino_2021.4_6shave.blob'
 
 if not Path(nnPath).exists():
-    raise FileNotFoundError(f'Required file/s not found, please run "{sys.executable} install_requirements.py"')
+    raise FileNotFoundError(
+        f'Required file/s not found, please run "{sys.executable} install_requirements.py"')
 
 # tiny yolo v4 label texts
 labelMap = [
@@ -67,8 +69,10 @@ def runPedestrianCamera(frame_queue, command, alert):
     detectionNetwork.setConfidenceThreshold(0.5)
     detectionNetwork.setNumClasses(80)
     detectionNetwork.setCoordinateSize(4)
-    detectionNetwork.setAnchors(np.array([10, 14, 23, 27, 37, 58, 81, 82, 135, 169, 344, 319]))
-    detectionNetwork.setAnchorMasks({"side26": np.array([1, 2, 3]), "side13": np.array([3, 4, 5])})
+    detectionNetwork.setAnchors(
+        np.array([10, 14, 23, 27, 37, 58, 81, 82, 135, 169, 344, 319]))
+    detectionNetwork.setAnchorMasks(
+        {"side26": np.array([1, 2, 3]), "side13": np.array([3, 4, 5])})
     detectionNetwork.setIouThreshold(0.5)
     detectionNetwork.setBlobPath(nnPath)
     detectionNetwork.setNumInferenceThreads(2)
@@ -79,7 +83,7 @@ def runPedestrianCamera(frame_queue, command, alert):
     manip.inputImage.setBlocking(False)
 
     # Linking
-    #camRgb.preview.link(detectionNetwork.input)
+    # camRgb.preview.link(detectionNetwork.input)
 
     camRgb.preview.link(manip.inputImage)
     manip.out.link(detectionNetwork.input)
@@ -89,7 +93,8 @@ def runPedestrianCamera(frame_queue, command, alert):
     detectionNetwork.out.link(nnOut.input)
 
     # Connect to device and start pipeline
-    found, device_info = dai.Device.getDeviceByMxId(DETECTION_CONFIG.REAR_CAMERA_ID)
+    found, device_info = dai.Device.getDeviceByMxId(
+        DETECTION_CONFIG.REAR_CAMERA_ID)
     if not found:
         raise RuntimeError("device not found")
     device = dai.Device(pipeline, device_info)
@@ -113,10 +118,14 @@ def runPedestrianCamera(frame_queue, command, alert):
     def displayFrame(name, frame):
         color = (255, 0, 0)
         for detection in detections:
-            bbox = frameNorm(frame, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
-            cv2.putText(frame, labelMap[detection.label], (bbox[0] + 10, bbox[1] + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
-            cv2.putText(frame, f"{int(detection.confidence * 100)}%", (bbox[0] + 10, bbox[1] + 40), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
-            cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
+            bbox = frameNorm(
+                frame, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
+            cv2.putText(frame, labelMap[detection.label], (bbox[0] +
+                        10, bbox[1] + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
+            cv2.putText(frame, f"{int(detection.confidence * 100)}%",
+                        (bbox[0] + 10, bbox[1] + 40), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
+            cv2.rectangle(frame, (bbox[0], bbox[1]),
+                          (bbox[2], bbox[3]), color, 2)
         # Show the frame
         cv2.imshow(name, frame)
 
@@ -143,24 +152,28 @@ def runPedestrianCamera(frame_queue, command, alert):
             if label != 'person':
                 continue
 
-            bbox = frameNorm(frame, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
-            cv2.putText(frame, label, (bbox[0] + 10, bbox[1] + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
-            cv2.putText(frame, f"{int(detection.confidence * 100)}%", (bbox[0] + 10, bbox[1] + 40), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
-            cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
+            bbox = frameNorm(
+                frame, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
+            cv2.putText(
+                frame, label, (bbox[0] + 10, bbox[1] + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
+            cv2.putText(frame, f"{int(detection.confidence * 100)}%",
+                        (bbox[0] + 10, bbox[1] + 40), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
+            cv2.rectangle(frame, (bbox[0], bbox[1]),
+                          (bbox[2], bbox[3]), color, 2)
 
             if alert.value == 0:
                 alert.value = DETECTION_CONFIG.RED_ALERT_SIGNAL
 
-        #crop black out of image
+        # crop black out of image
         frame = frame[91:325, 0:416]
         if PRODUCTION_CONFIG.PRODUCTION is True:
-            frame = cv2.resize(frame, (PRODUCTION_CONFIG.RearImage_Width, PRODUCTION_CONFIG.RearImage_Height), interpolation=cv2.INTER_LINEAR)        
-        
+            frame = cv2.resize(
+                frame, (PRODUCTION_CONFIG.RearImage_Width, PRODUCTION_CONFIG.RearImage_Height), interpolation=cv2.INTER_LINEAR)
+
         try:
             frame_queue.put_nowait(frame)
         except queue.Full:
             pass
-
 
 
 def main():
@@ -168,7 +181,8 @@ def main():
     command = mp.Value('i', 1)
     alert = mp.Value('i', 0)
 
-    proccess = mp.Process(target=runPedestrianCamera, args=(frame_queue, command, alert, ))
+    proccess = mp.Process(target=runPedestrianCamera,
+                          args=(frame_queue, command, alert, ))
     proccess.start()
 
     while True:
@@ -181,8 +195,9 @@ def main():
         if cv2.waitKey(1) == ord('q'):
             command.value = 0
             break
-    
+
     proccess.kill()
+
 
 if __name__ == '__main__':
     main()
