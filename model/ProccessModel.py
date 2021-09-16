@@ -3,10 +3,11 @@ from model.AlertModel import WarnAlert
 from PyQt5.QtCore import pyqtSignal
 import multiprocessing as mp
 import queue
-
+import yaml
 from model import AlertModel
-import CAMERA_CONFIG
 
+with open('config.yml', 'r') as stream:
+    config = yaml.load(stream, Loader=yaml.FullLoader)  
 
 
 class ICameraProcess(ABC):
@@ -48,15 +49,15 @@ class BasicCameraProccess(ICameraProcess):
     def getAlert(self):
         alert_level = self.alert.value
 
-        if alert_level == CAMERA_CONFIG.NO_ALERT_SIGNAL:
+        if alert_level == config["NO_ALERT_SIGNAL"]:
             return False
-        elif alert_level == CAMERA_CONFIG.YELLOW_ALERT_SIGNAL:
+        elif alert_level == config["YELLOW_ALERT_SIGNAL"]:
             self.WarnAlert.yellowAlert()
-        elif alert_level == CAMERA_CONFIG.RED_ALERT_SIGNAL:
+        elif alert_level == config["RED_ALERT_SIGNAL"]:
             self.WarnAlert.redAlert()        
 
         self.AlertSignal.emit(self.WarnAlert)
-        self.alert.value = CAMERA_CONFIG.NO_ALERT_SIGNAL
+        self.alert.value = config["NO_ALERT_SIGNAL"]
 
     def endCamera(self):
         self.queue.close()

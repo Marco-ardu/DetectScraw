@@ -1,17 +1,17 @@
-import PRODUCTION_CONFIG
-import argparse
 from datetime import datetime, timedelta
 from pathlib import Path
 import cv2
 import numpy as np
 import depthai
 from scipy.spatial.distance import euclidean
-import os
+import yaml
 import time
 import math
-import CAMERA_CONFIG
 import queue
 import multiprocessing as mp
+
+with open('config.yml', 'r') as stream:
+    config = yaml.load(stream, Loader=yaml.FullLoader)  
 
 # Get rotation vector and translation vector                        
 def get_pose_estimation(img_size, image_points ):
@@ -214,7 +214,7 @@ class Main:
 
     def start_pipeline(self):
         #self.device = depthai.Device(self.pipeline)
-        found, device_info = depthai.Device.getDeviceByMxId(CAMERA_CONFIG.DRIVER_CAMERA_ID)
+        found, device_info = depthai.Device.getDeviceByMxId(config["DRIVER_CAMERA_ID"])
         if not found:
             raise RuntimeError("device not found")
 
@@ -311,8 +311,8 @@ class Main:
                 self.COUNTER = 0
 
             if (
-                self.hCOUNTER >=  CAMERA_CONFIG.HEAD_TILT_COUNT or 
-                self.COUNTER > CAMERA_CONFIG.HEAD_TILT_COUNT
+                self.hCOUNTER >=  config["HEAD_TILT_COUNT"] or 
+                self.COUNTER > config["HEAD_TILT_COUNT"] 
             ):
                 cv2.putText(self.debug_frame, "SLEEP!!!", (self.face_coords[count][0], self.face_coords[count][1]-10),cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
                 self.alert.value = 1                
@@ -329,9 +329,9 @@ class Main:
             cv2.putText(self.debug_frame,"eye:{:d},mouth:{:d},head:{:d}".format(self.TOTAL,self.mTOTAL,self.hTOTAL),(10,40),cv2.FONT_HERSHEY_COMPLEX_SMALL,0.5,(255,0,0,))
             
             if (
-                self.TOTAL >= CAMERA_CONFIG.FATIGUE_TOTAL_COUNT or
-                self.mTOTAL>=CAMERA_CONFIG.YAWN_COUNT or 
-                self.hTOTAL >= CAMERA_CONFIG.HEAD_DOSE_COUNT
+                self.TOTAL >= config["FATIGUE_TOTAL_COUNT"]  or
+                self.mTOTAL>=config["YAWN_COUNT"] or 
+                self.hTOTAL >= config["HEAD_DOSE_COUNT"]
             ):
                 cv2.putText(self.debug_frame, "Danger!!!", (100, 200),cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
                 self.alert.value = 1
@@ -365,7 +365,7 @@ class Main:
                 self.run_land68(self.face_frame[i],i)
         
         aspect_ratio = self.frame.shape[1] / self.frame.shape[0]
-        frame_to_queue = cv2.resize(self.debug_frame, ( CAMERA_CONFIG.DriverImage_Width, CAMERA_CONFIG.DriverImage_Width))
+        frame_to_queue = cv2.resize(self.debug_frame, ( config["DriverImage_Width"], config["DriverImage_Width"]))
 
         try:
             self.frame_queue.put_nowait(frame_to_queue)

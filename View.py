@@ -9,8 +9,10 @@ from ui.ui_qtcart import Ui_MainWindow
 
 import numpy as np
 import cv2
+import yaml
 
-import PRODUCTION_CONFIG
+with open('config.yml', 'r') as stream:
+    config = yaml.load(stream, Loader=yaml.FullLoader)  
 
 
 class ViewWindow(QMainWindow, Ui_MainWindow):
@@ -28,7 +30,7 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         self.btnStart.clicked.connect(controller.btnStart_clicked)
         self.btnStop.clicked.connect(controller.btnStop_clicked)
         self.qs = QSound('sound/welcome.wav', parent=self.labelMessage)
-        if PRODUCTION_CONFIG.PRODUCTION is True:
+        if config["PRODUCTION"] is True:
             self.showMaximized()
             # self.LabelFront.setStyleSheet("background-color: yellow")
             # self.LabelRear.setStyleSheet("background-color: red")
@@ -84,7 +86,7 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         Pic = QImage(Image.data, Image.shape[1],
                      Image.shape[0], QImage.Format_RGB888)
 
-        if PRODUCTION_CONFIG.PRODUCTION is not True:
+        if config["PRODUCTION"] is not True:
             h, w = label.size().height(), label.size().width()
             Pic = Pic.scaled(w, h, Qt.KeepAspectRatio)
 
