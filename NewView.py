@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import QTimer, Qt, pyqtSlot
 from PyQt5.uic import loadUi
-from ui.ui_qtcart import Ui_MainWindow
+from ui.newUi import Ui_MainWindow
 
 import numpy as np
 import cv2
@@ -23,62 +23,64 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         self.defaultStyleSheet = "background-color: black; font-family:微軟正黑體; font-size:40pt;font-weight: bold; color:white"
         self.defaultWarnMessage = "警示訊息"
         self.defaultFrontLabelText = "前鏡頭"
-        self.defaultRearLabelText = "後鏡頭"
-        self.defaultDriverLabelText = "駕駛鏡頭"
+        self.defaultLeftLabelText = "左鏡頭"
+        self.defaultRightLabelText = "右鏡頭"
 
     def setup(self, controller):
-        self.btnStart.clicked.connect(controller.btnStart_clicked)
-        self.btnStop.clicked.connect(controller.btnStop_clicked)
-        self.qs = QSound('sound/welcome.wav', parent=self.labelMessage)
+        self.qs = QSound('sound/welcome.wav', parent=self.labelSpeed)
         if config["PRODUCTION"] is True:
-            self.showMaximized()
+            # self.showMaximized()
             # self.LabelFront.setStyleSheet("background-color: yellow")
             # self.LabelRear.setStyleSheet("background-color: red")
             self.qs.play()
 
+    def prepareWorker(self, worker):
+        self.Worker = worker()
+        self.Worker.finished.connect(self.setDefaultView)
+        self.Worker.LeftImage.connect(self.UpdateLeftSlot)
+        self.Worker.RightImage.connect(self.UpdateRightSlot)
+        self.Worker.Alert.connect(self.runAlert)
+
     @pyqtSlot()
     def setDefaultView(self):
 
-        self.LabelFront.clear()
-        self.LabelRear.clear()
-        self.LabelDriver.clear()
+        self.labelCamLeft.clear()
+        self.labelCamRight.clear()
 
-        self.LabelFront.setText(self.defaultFrontLabelText)
-        self.LabelRear.setText(self.defaultRearLabelText)
-        self.LabelDriver.setText(self.defaultDriverLabelText)
-        self.labelMessage.setText(self.defaultWarnMessage)
-
+        self.labelCamLeft.setText(self.defaultLeftLabelText)
+        self.labelCamRight.setText(self.defaultRightLabelText)
 
     @pyqtSlot(np.ndarray)
-    def UpdateFrontSlot(self, Image):
-        self.setImg(Image, self.LabelFront)
+    def UpdateLeftSlot(self, Image):
+        self.setImg(Image, self.labelCamLeft)
 
     @pyqtSlot(np.ndarray)
-    def UpdateRearSlot(self, Image):
-        self.setImg(Image, self.LabelRear)
-
-    @pyqtSlot(np.ndarray)
-    def UpdateDriverSlot(self, Image):
-        self.setImg(Image, self.LabelDriver)
+    def UpdateRightSlot(self, Image):
+        self.setImg(Image, self.labelCamRight)
 
     def keyPressEvent(self, event):
         key = event.key()
         print(key)
 
+        if key == 81:  # Q
+            self.Worker.stop()
+        elif key == 87 and self.Worker.command.value == 0:  # W
+            self.Worker.start()
+
     def runAlert(self, WarnAlert):
         if not self.qs.isFinished():
             return
 
-        self.labelMessage.setText(WarnAlert.warn_message)
+        self.labelSpeed.setText(WarnAlert.warn_message)
         sound_file = WarnAlert.warn_file
-        self.qs = QSound(sound_file, parent=self.labelMessage)
+        self.qs = QSound(sound_file, parent=self.labelSpeed)
         self.qs.play()
 
         for i in range(0, 1800, 600):
-            QTimer.singleShot((0.5 * i), lambda: self.labelMessage.setStyleSheet(
+            QTimer.singleShot((0.5 * i), lambda: self.labelSpeed.setStyleSheet(
                 f"background-color: {WarnAlert.warn_color}; font-family:微軟正黑體; font-size:40pt;font-weight: bold;"))
             QTimer.singleShot(
-                i, lambda: self.labelMessage.setStyleSheet(self.defaultStyleSheet))
+                i, lambda: self.labelSpeed.setStyleSheet(self.defaultStyleSheet))
 
     def setImg(self, frame, label):
 

@@ -143,6 +143,8 @@ def runPedestrianCamera(frame_queue, command, alert):
         counter += 1
 
         color = (255, 0, 0)
+        person_count = 0
+
         for detection in detections:
 
             try:
@@ -153,6 +155,7 @@ def runPedestrianCamera(frame_queue, command, alert):
             if label != 'person':
                 continue
 
+            person_count += 1
             bbox = frameNorm(
                 frame, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
             cv2.putText(
@@ -161,6 +164,11 @@ def runPedestrianCamera(frame_queue, command, alert):
                         (bbox[0] + 10, bbox[1] + 40), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
             cv2.rectangle(frame, (bbox[0], bbox[1]),
                           (bbox[2], bbox[3]), color, 2)
+
+
+            # 駕駛之外有人才會警報
+            if person_count <= 1:
+                continue
 
             if alert.value == 0:
                 alert.value = config["RED_ALERT_SIGNAL"]

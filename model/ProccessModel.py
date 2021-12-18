@@ -1,14 +1,13 @@
 from abc import ABC, abstractclassmethod
 from model.AlertModel import WarnAlert
+from factories import AlertFactory
 from PyQt5.QtCore import pyqtSignal
 import multiprocessing as mp
 import queue
 import yaml
-from model import AlertModel
 
 with open('config.yml', 'r') as stream:
-    config = yaml.load(stream, Loader=yaml.FullLoader)  
-
+    config = yaml.load(stream, Loader=yaml.FullLoader)
 
 class ICameraProcess(ABC):
     @abstractclassmethod
@@ -23,17 +22,20 @@ class ICameraProcess(ABC):
     def endCamera(self):
         return NotImplemented
 
+
 class BasicCameraProccess(ICameraProcess):
-    def __init__(self, command: mp.Value, camera: object, alert:AlertModel.WarnAlert, ImageSignal: pyqtSignal, AlertSignal:pyqtSignal) -> None:
+    def __init__(
+            self, command: mp.Value, camera: object, camera_id: str, ImageSignal: pyqtSignal, AlertSignal: pyqtSignal) -> None:
         super().__init__()
         self.command = command
         self.ImageSignal = ImageSignal
         self.AlertSignal = AlertSignal
-        self.WarnAlert = alert
 
-        self.alert = mp.Value('i', 0)
+
+        self.alert = mp.Value('i', 99)
         self.queue = mp.Queue(4)
-        self.proccess = mp.Process(target=camera, args=(self.queue, self.command, self.alert))   
+        self.proccess = mp.Process(target=camera, args=(
+            self.queue, self.command, self.alert, camera_id))
 
     def runCamera(self):
         self.proccess.start()
@@ -44,23 +46,17 @@ class BasicCameraProccess(ICameraProcess):
             self.ImageSignal.emit(frame)
             return frame
         except queue.Empty or queue.Full:
-            pass        
+            pass
 
     def getAlert(self):
-        alert_level = self.alert.value
+        if self.alert.value == 99: return
 
-        if alert_level == config["NO_ALERT_SIGNAL"]:
-            return False
-        elif alert_level == config["YELLOW_ALERT_SIGNAL"]:
-            self.WarnAlert.yellowAlert()
-        elif alert_level == config["RED_ALERT_SIGNAL"]:
-            self.WarnAlert.redAlert()        
+        WarnAlert = AlertFactory.AlertList[self.alert.value]
+        WarnAlert.redAlert()
 
-        self.AlertSignal.emit(self.WarnAlert)
-        self.alert.value = config["NO_ALERT_SIGNAL"]
+        self.AlertSignal.emit(WarnAlert)
+        self.alert.value = 99
 
     def endCamera(self):
         self.queue.close()
         self.proccess.kill()
-        
-

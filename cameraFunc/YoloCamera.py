@@ -6,7 +6,6 @@ import cv2
 import depthai as dai
 import numpy as np
 import time
-import sys
 import queue
 import yaml
 
@@ -23,7 +22,7 @@ def runYoloCamera(frame_queue, command, alert):
     nnBlobPath = 'cameraFunc/models/yolo-v4-tiny-tf_openvino_2021.4_6shave.blob'
 
     with open('config.yml', 'r') as stream:
-        config = yaml.load(stream, Loader=yaml.FullLoader)    
+        config = yaml.load(stream, Loader=yaml.FullLoader)
 
     if not Path(nnBlobPath).exists():
         raise FileNotFoundError(f'Required file/s not found, please run "{sys.executable} install_requirements.py"')
@@ -144,6 +143,7 @@ def runYoloCamera(frame_queue, command, alert):
         # If the frame is available, draw bounding boxes on it and show the frame
         height = frame.shape[0]
         width  = frame.shape[1]
+
         for detection in detections:
             # Denormalize bounding box
             x1 = int(detection.xmin * width)
@@ -154,7 +154,7 @@ def runYoloCamera(frame_queue, command, alert):
                 label = labelMap[detection.label]
             except:
                 label = detection.label
-            
+
             if label != 'person':
                 continue
 
@@ -167,21 +167,21 @@ def runYoloCamera(frame_queue, command, alert):
             cv2.putText(frame, f"Z: {int(detection.spatialCoordinates.z)} mm", (x1 + 10, y1 + 80), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
 
             cv2.rectangle(frame, (x1, y1), (x2, y2), color, cv2.FONT_HERSHEY_SIMPLEX)
-            
+
             if alert.value != 0:
                 continue
 
             if person_distance < config["RED_ALERT_DISTANCE"]:
                 alert.value = config["RED_ALERT_SIGNAL"]
             elif person_distance < config["YELLOW_ALERT_DISTANCE"]:
-                alert.value = config["YELLOW_ALERT_SIGNAL"]  
-        
+                alert.value = config["YELLOW_ALERT_SIGNAL"]
+
         #crop black out of image
         frame = frame[91:325, 0:416]
 
         if config["PRODUCTION"] is True:
             frame = cv2.resize(frame, (config["MainImage_Width"], config["MainImage_Height"]), interpolation=cv2.INTER_LINEAR)
-        
+
         try:
             frame_queue.put_nowait(frame)
         except queue.Full:

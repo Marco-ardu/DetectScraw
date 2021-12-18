@@ -11,9 +11,9 @@ import queue
 import multiprocessing as mp
 
 with open('config.yml', 'r') as stream:
-    config = yaml.load(stream, Loader=yaml.FullLoader)  
+    config = yaml.load(stream, Loader=yaml.FullLoader)
 
-# Get rotation vector and translation vector                        
+# Get rotation vector and translation vector
 def get_pose_estimation(img_size, image_points ):
     # 3D model points.
     model_points = np.array([
@@ -24,9 +24,9 @@ def get_pose_estimation(img_size, image_points ):
                                 (-150.0, -150.0, -125.0),    # Left Mouth corner
                                 (150.0, -150.0, -125.0)      # Right mouth corner
                             ])
-     
+
     # Camera internals
-     
+
     focal_length = img_size[1]
     center = (img_size[1]/2, img_size[0]/2)
     camera_matrix = np.array(
@@ -34,7 +34,7 @@ def get_pose_estimation(img_size, image_points ):
                              [0, focal_length, center[1]],
                              [0, 0, 1]], dtype = "double"
                              )
-     
+
     # print("Camera Matrix :{}".format(camera_matrix))
     # print(image_points)
     dist_coeffs = np.zeros((4,1)) # Assuming no lens distortion
@@ -47,20 +47,20 @@ def get_pose_estimation(img_size, image_points ):
 def get_euler_angle(rotation_vector):
     # calculate rotation angles
     theta = cv2.norm(rotation_vector, cv2.NORM_L2)
-    
+
     # transformed to quaterniond
     w = math.cos(theta / 2)
     x = math.sin(theta / 2)*rotation_vector[0][0] / theta
     y = math.sin(theta / 2)*rotation_vector[1][0] / theta
     z = math.sin(theta / 2)*rotation_vector[2][0] / theta
-    
+
     ysqr = y * y
     # pitch (x-axis rotation)
     t0 = 2.0 * (w * x + y * z)
     t1 = 1.0 - 2.0 * (x * x + ysqr)
     # print('t0:{}, t1:{}'.format(t0, t1))
     pitch = math.atan2(t0, t1)
-    
+
     # yaw (y-axis rotation)
     t2 = 2.0 * (w * y - z * x)
     if t2 > 1.0:
@@ -68,19 +68,19 @@ def get_euler_angle(rotation_vector):
     if t2 < -1.0:
         t2 = -1.0
     yaw = math.asin(t2)
-    
+
     # roll (z-axis rotation)
     t3 = 2.0 * (w * z + x * y)
     t4 = 1.0 - 2.0 * (ysqr + z * z)
     roll = math.atan2(t3, t4)
-    
+
     # print('pitch:{}, yaw:{}, roll:{}'.format(pitch, yaw, roll))
-    
+
 	# Unit conversion: convert radians to degrees
     Y = int((pitch/math.pi)*180)
     X = int((yaw/math.pi)*180)
     Z = int((roll/math.pi)*180)
-    
+
     return 0, Y, X, Z
 
 def timer(function):
@@ -169,9 +169,9 @@ def create_pipeline(camera):
 
     cam_xout = pipeline.createXLinkOut()
     cam_xout.setStreamName("cam_out")
-    
+
     cam.preview.link(cam_xout.input)
-    first_model(pipeline,cam,"cameraFunc/models/face-detection-retail-0004_openvino_2020_1_4shave.blob","face")    
+    first_model(pipeline,cam,"cameraFunc/models/face-detection-retail-0004_openvino_2020_1_4shave.blob","face")
     models(pipeline,"cameraFunc/models/face_landmark_160x160_openvino_2020_1_4shave.blob","land68")
     return pipeline
 
@@ -249,12 +249,12 @@ class Main:
                 face_coord[1]:face_coord[3],
                 face_coord[0]:face_coord[2]
             ] for face_coord in self.face_coords]
- 
+
         for bbox in self.face_coords:
             self.draw_bbox(bbox, (10, 245, 10))
         return True
-    
-    
+
+
     def run_land68(self,face_frame,count):
         try:
             nn_data = run_nn(self.land68_in,self.land68_nn, {"data": to_planar(face_frame, (160,160))})
@@ -276,7 +276,7 @@ class Main:
                 if i == 16 or i == 60 or i == 72 or i == 90 or i == 96 or i == 108:
                     cv2.circle(self.debug_frame,(result[i]+self.face_coords[count][0],result[i+1]+self.face_coords[count][1]),2,(255,0,0),thickness=1,lineType=8,shift=0)
                     hand_points.append((result[i]+self.face_coords[count][0],result[i+1]+self.face_coords[count][1]))
-            
+
 
             ret, rotation_vector, translation_vector, camera_matrix, dist_coeffs = get_pose_estimation(self.frame.shape, np.array(hand_points,dtype='double'))
             ret, pitch, yaw, roll = get_euler_angle(rotation_vector)
@@ -294,7 +294,7 @@ class Main:
                 if self.hCOUNTER >= 3:
                     self.hTOTAL += 1
                 self.hCOUNTER = 0
-            
+
             left_ear = self.eye_aspect_ratio(eye_left)
             right_ear = self.eye_aspect_ratio(eye_right)
             ear = (left_ear + right_ear) / 2.0
@@ -311,11 +311,11 @@ class Main:
                 self.COUNTER = 0
 
             if (
-                self.hCOUNTER >=  config["HEAD_TILT_COUNT"] or 
-                self.COUNTER > config["HEAD_TILT_COUNT"] 
+                self.hCOUNTER >=  config["HEAD_TILT_COUNT"] or
+                self.COUNTER > config["HEAD_TILT_COUNT"]
             ):
                 cv2.putText(self.debug_frame, "SLEEP!!!", (self.face_coords[count][0], self.face_coords[count][1]-10),cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
-                self.alert.value = 1                
+                self.alert.value = 1
 
 
             mouth_ratio = self.mouth_aspect_ratio(mouth)
@@ -327,10 +327,10 @@ class Main:
                 self.mCOUNTER = 0
 
             cv2.putText(self.debug_frame,"eye:{:d},mouth:{:d},head:{:d}".format(self.TOTAL,self.mTOTAL,self.hTOTAL),(10,40),cv2.FONT_HERSHEY_COMPLEX_SMALL,0.5,(255,0,0,))
-            
+
             if (
                 self.TOTAL >= config["FATIGUE_TOTAL_COUNT"]  or
-                self.mTOTAL>=config["YAWN_COUNT"] or 
+                self.mTOTAL>=config["YAWN_COUNT"] or
                 self.hTOTAL >= config["HEAD_DOSE_COUNT"]
             ):
                 cv2.putText(self.debug_frame, "Danger!!!", (100, 200),cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
@@ -342,7 +342,7 @@ class Main:
                 self.hTOTAL = 0
         except:
             pass
-    
+
     def mouth_aspect_ratio(self,mouth):
         A = np.linalg.norm(mouth[1] - mouth[5])  # 51, 59
         B = np.linalg.norm(mouth[2] - mouth[4])  # 53, 57
@@ -363,7 +363,7 @@ class Main:
         if face_success:
             for i in range(len(self.face_frame)):
                 self.run_land68(self.face_frame[i],i)
-        
+
         aspect_ratio = self.frame.shape[1] / self.frame.shape[0]
         frame_to_queue = cv2.resize(self.debug_frame, ( config["DriverImage_Width"], config["DriverImage_Width"]))
 
@@ -396,7 +396,7 @@ class Main:
                 self.parse()
             except StopIteration:
                 break
-    
+
     def run(self):
         self.run_camera()
         del self.device
@@ -426,7 +426,7 @@ def main():
         if cv2.waitKey(1) == ord('q'):
             command.value = 0
             break
-    
+
     proccess.kill()
 
 if __name__ == '__main__':
