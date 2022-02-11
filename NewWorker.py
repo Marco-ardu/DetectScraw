@@ -1,12 +1,12 @@
-from PyQt5.QtCore import QThread, pyqtSignal
-
-import numpy
 import multiprocessing as mp
 
+import numpy
+import yaml
+from PyQt5.QtCore import QThread, pyqtSignal
+
+from factories import CameraFactory
 from model.AlertModel import WarnAlert
 from model.ProccessModel import BasicCameraProccess
-from factories import CameraFactory, AlertFactory
-import yaml
 
 with open('config.yml', 'r') as stream:
     config = yaml.load(stream, Loader=yaml.FullLoader)
@@ -26,8 +26,10 @@ class Worker(QThread):
 
         # FatigueCam = CameraFactory.CameraFactory(CameraFactory.TextFatigueCamera)
         CombinedCam = CameraFactory.CameraFactory(CameraFactory.TextCombinedCamera)
-        LeftCamera = BasicCameraProccess(self.command, CombinedCam, config["LEFT_CAMERA_ID"], self.LeftImage, self.Alert)
-        RightCamera = BasicCameraProccess(self.command, CombinedCam, config["RIGHT_CAMERA_ID"], self.RightImage, self.Alert)
+        LeftCamera = BasicCameraProccess(self.command, CombinedCam, config["LEFT_CAMERA_ID"], self.LeftImage,
+                                         self.Alert)
+        RightCamera = BasicCameraProccess(self.command, CombinedCam, config["RIGHT_CAMERA_ID"], self.RightImage,
+                                          self.Alert)
 
         # YoloCam = CameraFactory.CameraFactory(CameraFactory.TextYoloCamera)
         # FrontAlert = AlertFactory.AlertFactory(AlertFactory.AlertText_PedestrianFront)

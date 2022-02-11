@@ -1,6 +1,5 @@
-import cv2
 import depthai as dai
-import time
+
 
 def runFaceCamera(q, command):
     try:
@@ -31,7 +30,6 @@ def runFaceCamera(q, command):
             if in_rgb is not None:
                 frame = in_rgb.getCvFrame()
                 q.put_nowait(frame)
-
 
             # i += 1
             # img_id = i % 2 + 1

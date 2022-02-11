@@ -1,16 +1,19 @@
 import multiprocessing as mp
-import cv2
 import queue
+
+import cv2
+
 
 def runCam(frame_queue, command, alert):
     pass
+
 
 def main():
     frame_queue = mp.Queue(4)
     command = mp.Value('i', 1)
     alert = mp.Value('i', 0)
 
-    proccess = mp.Process(target=runCam, args=(frame_queue, command, alert, ))
+    proccess = mp.Process(target=runCam, args=(frame_queue, command, alert,))
     proccess.start()
 
     while True:
@@ -25,6 +28,7 @@ def main():
             break
 
     proccess.kill()
+
 
 if __name__ == '__main__':
     main()

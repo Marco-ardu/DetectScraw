@@ -1,15 +1,14 @@
+import cv2
+import numpy as np
+import yaml
+from PyQt5.QtCore import QTimer, Qt, pyqtSlot
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtMultimedia import QSound
 from PyQt5.QtWidgets import (
     QMainWindow
 )
-from PyQt5.QtCore import QTimer, Qt, pyqtSlot
-from PyQt5.uic import loadUi
-from ui.newUi import Ui_MainWindow
 
-import numpy as np
-import cv2
-import yaml
+from ui.newUi import Ui_MainWindow
 
 with open('config.yml', 'r') as stream:
     config = yaml.load(stream, Loader=yaml.FullLoader)

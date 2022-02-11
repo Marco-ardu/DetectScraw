@@ -6,21 +6,22 @@ The code is the same as for Tiny-yolo-V3, the only difference is the blob file.
 The blob was compiled following this tutorial: https://github.com/TNTWEN/OpenVINO-YOLOV4
 """
 
-from pathlib import Path
+import multiprocessing as mp
+import queue
 import sys
+import time
+from pathlib import Path
+
 import cv2
 import depthai as dai
 import numpy as np
-import time
-import multiprocessing as mp
-import queue
 import yaml
 
 # Get argument first
 nnPath = 'cameraFunc/models/yolo-v4-tiny-tf_openvino_2021.4_6shave.blob'
 
 with open('config.yml', 'r') as stream:
-    config = yaml.load(stream, Loader=yaml.FullLoader)    
+    config = yaml.load(stream, Loader=yaml.FullLoader)
 
 if not Path(nnPath).exists():
     raise FileNotFoundError(
@@ -28,18 +29,18 @@ if not Path(nnPath).exists():
 
 # tiny yolo v4 label texts
 labelMap = [
-    "person",         "bicycle",    "car",           "motorbike",     "aeroplane",   "bus",           "train",
-    "truck",          "boat",       "traffic light", "fire hydrant",  "stop sign",   "parking meter", "bench",
-    "bird",           "cat",        "dog",           "horse",         "sheep",       "cow",           "elephant",
-    "bear",           "zebra",      "giraffe",       "backpack",      "umbrella",    "handbag",       "tie",
-    "suitcase",       "frisbee",    "skis",          "snowboard",     "sports ball", "kite",          "baseball bat",
-    "baseball glove", "skateboard", "surfboard",     "tennis racket", "bottle",      "wine glass",    "cup",
-    "fork",           "knife",      "spoon",         "bowl",          "banana",      "apple",         "sandwich",
-    "orange",         "broccoli",   "carrot",        "hot dog",       "pizza",       "donut",         "cake",
-    "chair",          "sofa",       "pottedplant",   "bed",           "diningtable", "toilet",        "tvmonitor",
-    "laptop",         "mouse",      "remote",        "keyboard",      "cell phone",  "microwave",     "oven",
-    "toaster",        "sink",       "refrigerator",  "book",          "clock",       "vase",          "scissors",
-    "teddy bear",     "hair drier", "toothbrush"
+    "person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train",
+    "truck", "boat", "traffic light", "fire hydrant", "stop sign", "parking meter", "bench",
+    "bird", "cat", "dog", "horse", "sheep", "cow", "elephant",
+    "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie",
+    "suitcase", "frisbee", "skis", "snowboard", "sports ball", "kite", "baseball bat",
+    "baseball glove", "skateboard", "surfboard", "tennis racket", "bottle", "wine glass", "cup",
+    "fork", "knife", "spoon", "bowl", "banana", "apple", "sandwich",
+    "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake",
+    "chair", "sofa", "pottedplant", "bed", "diningtable", "toilet", "tvmonitor",
+    "laptop", "mouse", "remote", "keyboard", "cell phone", "microwave", "oven",
+    "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors",
+    "teddy bear", "hair drier", "toothbrush"
 ]
 
 
@@ -110,7 +111,8 @@ def runPedestrianCamera(frame_queue, command, alert):
     counter = 0
     color2 = (255, 255, 255)
 
-    # nn data, being the bounding box locations, are in <0..1> range - they need to be normalized with frame width/height
+    # nn data, being the bounding box locations, are in <0..1> range - they need to be normalized with frame
+    # width/height
     def frameNorm(frame, bbox):
         normVals = np.full(len(bbox), frame.shape[0])
         normVals[::2] = frame.shape[1]
@@ -122,7 +124,7 @@ def runPedestrianCamera(frame_queue, command, alert):
             bbox = frameNorm(
                 frame, (detection.xmin, detection.ymin, detection.xmax, detection.ymax))
             cv2.putText(frame, labelMap[detection.label], (bbox[0] +
-                        10, bbox[1] + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
+                                                           10, bbox[1] + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
             cv2.putText(frame, f"{int(detection.confidence * 100)}%",
                         (bbox[0] + 10, bbox[1] + 40), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
             cv2.rectangle(frame, (bbox[0], bbox[1]),
@@ -165,7 +167,6 @@ def runPedestrianCamera(frame_queue, command, alert):
             cv2.rectangle(frame, (bbox[0], bbox[1]),
                           (bbox[2], bbox[3]), color, 2)
 
-
             # 駕駛之外有人才會警報
             if person_count <= 1:
                 continue
@@ -176,7 +177,8 @@ def runPedestrianCamera(frame_queue, command, alert):
         # crop black out of image
         frame = frame[91:325, 0:416]
         if config["PRODUCTION"] is True:
-            frame = cv2.resize(frame, (config["MainImage_Width"], config["MainImage_Height"]), interpolation=cv2.INTER_LINEAR)
+            frame = cv2.resize(frame, (config["MainImage_Width"], config["MainImage_Height"]),
+                               interpolation=cv2.INTER_LINEAR)
 
         try:
             frame_queue.put_nowait(frame)
@@ -190,7 +192,7 @@ def main():
     alert = mp.Value('i', 0)
 
     proccess = mp.Process(target=runPedestrianCamera,
-                          args=(frame_queue, command, alert, ))
+                          args=(frame_queue, command, alert,))
     proccess.start()
 
     while True:

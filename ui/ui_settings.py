@@ -76,7 +76,7 @@ class Ui_DialogSettings(object):
         self.verticalLayout.addWidget(self.checkBox)
         self.buttonBox = QtWidgets.QDialogButtonBox(DialogSettings)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.verticalLayout.addWidget(self.buttonBox)
 
@@ -95,6 +95,7 @@ class Ui_DialogSettings(object):
 
 if __name__ == "__main__":
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
     DialogSettings = QtWidgets.QDialog()
     ui = Ui_DialogSettings()

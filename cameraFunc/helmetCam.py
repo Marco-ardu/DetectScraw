@@ -1,15 +1,10 @@
-import argparse
-import time
-from pathlib import Path
-from time import monotonic
 import multiprocessing as mp
+import queue
+from pathlib import Path
+
 import cv2
 import depthai as dai
 import numpy as np
-from imutils.video import FPS
-import os
-import queue
-
 import yaml
 
 with open('../config.yml', 'r') as stream:
@@ -17,12 +12,10 @@ with open('../config.yml', 'r') as stream:
 
 VOC_CLASSES = ("helmet", "head")
 
-
 __all__ = ["vis"]
 
 
 def vis(img, boxes, scores, cls_ids, conf=0.5, class_names=None):
-
     for i in range(len(boxes)):
         box = boxes[i]
         cls_id = int(cls_ids[i])
@@ -44,7 +37,7 @@ def vis(img, boxes, scores, cls_ids, conf=0.5, class_names=None):
             txt_bk_color = (_COLORS[cls_id] * 255 * 0.7).astype(np.uint8).tolist()
             cv2.rectangle(
                 img,
-                (x0, y0 - int(1.5*txt_size[1])),
+                (x0, y0 - int(1.5 * txt_size[1])),
                 (x0 + txt_size[0] + 1, y0 + 1),
                 # (x0 + y0 + 1),
                 # (x0 + txt_size[0] + 1, y0 + int(1.5*txt_size[1])),
@@ -52,7 +45,7 @@ def vis(img, boxes, scores, cls_ids, conf=0.5, class_names=None):
                 -1
             )
             # cv2.putText(img, text, (x0, y0 - txt_size[1]), font, 0.4, txt_color, thickness=1)
-            cv2.putText(img, text, (x0, y0 ), font, 0.4, txt_color, thickness=1)
+            cv2.putText(img, text, (x0, y0), font, 0.4, txt_color, thickness=1)
 
     return img
 
@@ -95,6 +88,7 @@ def nms(boxes, scores, nms_thr):
 
     return keep
 
+
 def multiclass_nms(boxes, scores, nms_thr, score_thr):
     """Multiclass NMS implemented in Numpy"""
     final_dets = []
@@ -116,8 +110,8 @@ def multiclass_nms(boxes, scores, nms_thr, score_thr):
         return None
     return np.concatenate(final_dets, 0)
 
-def demo_postprocess(outputs, img_size, p6=False):
 
+def demo_postprocess(outputs, img_size, p6=False):
     grids = []
     expanded_strides = []
 
@@ -126,8 +120,8 @@ def demo_postprocess(outputs, img_size, p6=False):
     else:
         strides = [8, 16, 32, 64]
 
-    hsizes = [img_size[0]//stride for stride in strides]
-    wsizes = [img_size[1]//stride for stride in strides]
+    hsizes = [img_size[0] // stride for stride in strides]
+    wsizes = [img_size[1] // stride for stride in strides]
 
     for hsize, wsize, stride in zip(hsizes, wsizes, strides):
         xv, yv = np.meshgrid(np.arange(hsize), np.arange(wsize))
@@ -183,8 +177,8 @@ def to_planar(arr: np.ndarray, input_size: tuple = None) -> np.ndarray:
     )
     padding = (input_size - resize_) // 2
     padded_img[
-        padding[0] : padding[0] + int(img.shape[0] * r),
-        padding[1] : padding[1] + int(img.shape[1] * r),
+    padding[0]: padding[0] + int(img.shape[0] * r),
+    padding[1]: padding[1] + int(img.shape[1] * r),
     ] = resized_img
     image = padded_img.transpose(2, 0, 1)
     return image
@@ -192,9 +186,10 @@ def to_planar(arr: np.ndarray, input_size: tuple = None) -> np.ndarray:
 
 def frame_norm(frame, bbox):
     return (
-        np.clip(np.array(bbox), 0, 1)
-        * np.array([*frame.shape[:2], *frame.shape[:2]])[::-1]
+            np.clip(np.array(bbox), 0, 1)
+            * np.array([*frame.shape[:2], *frame.shape[:2]])[::-1]
     ).astype(int)
+
 
 def runCam(frame_queue, command, camera_id):
     pipeline = dai.Pipeline()
@@ -213,9 +208,9 @@ def runCam(frame_queue, command, camera_id):
     yoloDet = pipeline.createNeuralNetwork()
     yoloDet.setBlobPath(
         Path("models/helmet_detection_yolox1_openvino_2021.4_6shave.blob")
-        .resolve()
-        .absolute()
-        .as_posix()
+            .resolve()
+            .absolute()
+            .as_posix()
     )
     yolox_det_nn_xout = pipeline.createXLinkOut()
     yolox_det_nn_xout.setStreamName("yolox_det_nn")
@@ -288,7 +283,7 @@ def main():
     camera_id = config["LEFT_CAMERA_ID"]
     print(camera_id)
 
-    proccess = mp.Process(target=runCam, args=(frame_queue, command, camera_id, ))
+    proccess = mp.Process(target=runCam, args=(frame_queue, command, camera_id,))
     proccess.start()
 
     while True:
@@ -303,6 +298,7 @@ def main():
             break
 
     proccess.kill()
+
 
 if __name__ == '__main__':
     main()

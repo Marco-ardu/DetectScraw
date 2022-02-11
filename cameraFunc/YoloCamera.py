@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
-from pathlib import Path
+import queue
 import sys
+import time
+from pathlib import Path
+
 import cv2
 import depthai as dai
 import numpy as np
-import time
-import queue
 import yaml
 
 '''
@@ -18,7 +19,7 @@ Spatial Tiny-yolo example
 
 def runYoloCamera(frame_queue, command, alert):
     # Get argument first
-    #nnBlobPath = str((Path(__file__).parent / Path('models/yolo-v4-tiny-tf_openvino_2021.4_6shave.blob')).resolve().absolute())
+    # nnBlobPath = str((Path(__file__).parent / Path('models/yolo-v4-tiny-tf_openvino_2021.4_6shave.blob')).resolve().absolute())
     nnBlobPath = 'cameraFunc/models/yolo-v4-tiny-tf_openvino_2021.4_6shave.blob'
 
     with open('config.yml', 'r') as stream:
@@ -29,18 +30,18 @@ def runYoloCamera(frame_queue, command, alert):
 
     # Tiny yolo v3/4 label texts
     labelMap = [
-        "person",         "bicycle",    "car",           "motorbike",     "aeroplane",   "bus",           "train",
-        "truck",          "boat",       "traffic light", "fire hydrant",  "stop sign",   "parking meter", "bench",
-        "bird",           "cat",        "dog",           "horse",         "sheep",       "cow",           "elephant",
-        "bear",           "zebra",      "giraffe",       "backpack",      "umbrella",    "handbag",       "tie",
-        "suitcase",       "frisbee",    "skis",          "snowboard",     "sports ball", "kite",          "baseball bat",
-        "baseball glove", "skateboard", "surfboard",     "tennis racket", "bottle",      "wine glass",    "cup",
-        "fork",           "knife",      "spoon",         "bowl",          "banana",      "apple",         "sandwich",
-        "orange",         "broccoli",   "carrot",        "hot dog",       "pizza",       "donut",         "cake",
-        "chair",          "sofa",       "pottedplant",   "bed",           "diningtable", "toilet",        "tvmonitor",
-        "laptop",         "mouse",      "remote",        "keyboard",      "cell phone",  "microwave",     "oven",
-        "toaster",        "sink",       "refrigerator",  "book",          "clock",       "vase",          "scissors",
-        "teddy bear",     "hair drier", "toothbrush"
+        "person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train",
+        "truck", "boat", "traffic light", "fire hydrant", "stop sign", "parking meter", "bench",
+        "bird", "cat", "dog", "horse", "sheep", "cow", "elephant",
+        "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie",
+        "suitcase", "frisbee", "skis", "snowboard", "sports ball", "kite", "baseball bat",
+        "baseball glove", "skateboard", "surfboard", "tennis racket", "bottle", "wine glass", "cup",
+        "fork", "knife", "spoon", "bowl", "banana", "apple", "sandwich",
+        "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake",
+        "chair", "sofa", "pottedplant", "bed", "diningtable", "toilet", "tvmonitor",
+        "laptop", "mouse", "remote", "keyboard", "cell phone", "microwave", "oven",
+        "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors",
+        "teddy bear", "hair drier", "toothbrush"
     ]
 
     # Create pipeline
@@ -79,7 +80,6 @@ def runYoloCamera(frame_queue, command, alert):
     monoRight.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
     monoRight.setBoardSocket(dai.CameraBoardSocket.RIGHT)
 
-
     manip.initialConfig.setResizeThumbnail(416, 416)
     manip.initialConfig.setFrameType(dai.ImgFrame.Type.BGR888p)
     manip.inputImage.setBlocking(False)
@@ -97,8 +97,8 @@ def runYoloCamera(frame_queue, command, alert):
     # Yolo specific parameters
     spatialDetectionNetwork.setNumClasses(80)
     spatialDetectionNetwork.setCoordinateSize(4)
-    spatialDetectionNetwork.setAnchors(np.array([10,14, 23,27, 37,58, 81,82, 135,169, 344,319]))
-    spatialDetectionNetwork.setAnchorMasks({ "side26": np.array([1,2,3]), "side13": np.array([3,4,5]) })
+    spatialDetectionNetwork.setAnchors(np.array([10, 14, 23, 27, 37, 58, 81, 82, 135, 169, 344, 319]))
+    spatialDetectionNetwork.setAnchorMasks({"side26": np.array([1, 2, 3]), "side13": np.array([3, 4, 5])})
     spatialDetectionNetwork.setIouThreshold(0.5)
 
     # Linking
@@ -137,12 +137,12 @@ def runYoloCamera(frame_queue, command, alert):
 
         frame = inPreview.getCvFrame()
 
-        counter+=1
+        counter += 1
         detections = inDet.detections
 
         # If the frame is available, draw bounding boxes on it and show the frame
         height = frame.shape[0]
-        width  = frame.shape[1]
+        width = frame.shape[1]
 
         for detection in detections:
             # Denormalize bounding box
@@ -161,10 +161,14 @@ def runYoloCamera(frame_queue, command, alert):
             person_distance = int(detection.spatialCoordinates.z)
 
             cv2.putText(frame, str(label), (x1 + 10, y1 + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
-            cv2.putText(frame, "{:.2f}".format(detection.confidence*100), (x1 + 10, y1 + 35), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
-            cv2.putText(frame, f"X: {int(detection.spatialCoordinates.x)} mm", (x1 + 10, y1 + 50), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
-            cv2.putText(frame, f"Y: {int(detection.spatialCoordinates.y)} mm", (x1 + 10, y1 + 65), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
-            cv2.putText(frame, f"Z: {int(detection.spatialCoordinates.z)} mm", (x1 + 10, y1 + 80), cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
+            cv2.putText(frame, "{:.2f}".format(detection.confidence * 100), (x1 + 10, y1 + 35),
+                        cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
+            cv2.putText(frame, f"X: {int(detection.spatialCoordinates.x)} mm", (x1 + 10, y1 + 50),
+                        cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
+            cv2.putText(frame, f"Y: {int(detection.spatialCoordinates.y)} mm", (x1 + 10, y1 + 65),
+                        cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
+            cv2.putText(frame, f"Z: {int(detection.spatialCoordinates.z)} mm", (x1 + 10, y1 + 80),
+                        cv2.FONT_HERSHEY_TRIPLEX, 0.5, 255)
 
             cv2.rectangle(frame, (x1, y1), (x2, y2), color, cv2.FONT_HERSHEY_SIMPLEX)
 
@@ -176,16 +180,14 @@ def runYoloCamera(frame_queue, command, alert):
             elif person_distance < config["YELLOW_ALERT_DISTANCE"]:
                 alert.value = config["YELLOW_ALERT_SIGNAL"]
 
-        #crop black out of image
+        # crop black out of image
         frame = frame[91:325, 0:416]
 
         if config["PRODUCTION"] is True:
-            frame = cv2.resize(frame, (config["MainImage_Width"], config["MainImage_Height"]), interpolation=cv2.INTER_LINEAR)
+            frame = cv2.resize(frame, (config["MainImage_Width"], config["MainImage_Height"]),
+                               interpolation=cv2.INTER_LINEAR)
 
         try:
             frame_queue.put_nowait(frame)
         except queue.Full:
             pass
-
-
-

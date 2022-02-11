@@ -1,15 +1,10 @@
-import argparse
-import time
-from pathlib import Path
-from time import monotonic
 import multiprocessing as mp
+import queue
+from pathlib import Path
+
 import cv2
 import depthai as dai
 import numpy as np
-from imutils.video import FPS
-import os
-import queue
-
 import yaml
 
 from factories import AlertFactory
@@ -23,9 +18,10 @@ path_helmet_model = "cameraFunc/models/helmet_detection_yolox1_openvino_2021.4_6
 parentDir = Path(__file__).parent
 shaves = 6
 size = (320, 320)
-CLASSES = ["phone", "person","head"]
+CLASSES = ["phone", "person", "head"]
 
 __all__ = ["vis"]
+
 
 def multiclass_nms_phone(boxes, scores, nms_thr, score_thr):
     """Multiclass NMS implemented in Numpy"""
@@ -48,8 +44,8 @@ def multiclass_nms_phone(boxes, scores, nms_thr, score_thr):
         return None
     return np.concatenate(final_dets, 0)
 
-def demo_postprocess_phone(outputs, img_size, p6=False):
 
+def demo_postprocess_phone(outputs, img_size, p6=False):
     grids = []
     expanded_strides = []
 
@@ -58,8 +54,8 @@ def demo_postprocess_phone(outputs, img_size, p6=False):
     else:
         strides = [8, 16, 32, 64]
 
-    hsizes = [img_size[0]//stride for stride in strides]
-    wsizes = [img_size[1]//stride for stride in strides]
+    hsizes = [img_size[0] // stride for stride in strides]
+    wsizes = [img_size[1] // stride for stride in strides]
 
     for hsize, wsize, stride in zip(hsizes, wsizes, strides):
         xv, yv = np.meshgrid(np.arange(hsize), np.arange(wsize))
@@ -74,6 +70,7 @@ def demo_postprocess_phone(outputs, img_size, p6=False):
     outputs[..., 2:4] = np.exp(outputs[..., 2:4]) * expanded_strides
 
     return outputs
+
 
 def toTensorResult(packet):
     """
@@ -99,8 +96,8 @@ def toTensorResult(packet):
             print("Unsupported tensor layer type: {}".format(tensor.dataType))
     return data
 
-def vis(img, boxes, scores, cls_ids, conf=0.5, class_names=None):
 
+def vis(img, boxes, scores, cls_ids, conf=0.5, class_names=None):
     for i in range(len(boxes)):
         box = boxes[i]
         cls_id = int(cls_ids[i])
@@ -122,7 +119,7 @@ def vis(img, boxes, scores, cls_ids, conf=0.5, class_names=None):
             txt_bk_color = (_COLORS[cls_id] * 255 * 0.7).astype(np.uint8).tolist()
             cv2.rectangle(
                 img,
-                (x0, y0 - int(1.5*txt_size[1])),
+                (x0, y0 - int(1.5 * txt_size[1])),
                 (x0 + txt_size[0] + 1, y0 + 1),
                 # (x0 + y0 + 1),
                 # (x0 + txt_size[0] + 1, y0 + int(1.5*txt_size[1])),
@@ -130,7 +127,7 @@ def vis(img, boxes, scores, cls_ids, conf=0.5, class_names=None):
                 -1
             )
             # cv2.putText(img, text, (x0, y0 - txt_size[1]), font, 0.4, txt_color, thickness=1)
-            cv2.putText(img, text, (x0, y0 ), font, 0.4, txt_color, thickness=1)
+            cv2.putText(img, text, (x0, y0), font, 0.4, txt_color, thickness=1)
 
     return img
 
@@ -173,6 +170,7 @@ def nms(boxes, scores, nms_thr):
 
     return keep
 
+
 def multiclass_nms_helmet(boxes, scores, nms_thr, score_thr):
     """Multiclass NMS implemented in Numpy"""
     final_dets = []
@@ -194,8 +192,8 @@ def multiclass_nms_helmet(boxes, scores, nms_thr, score_thr):
         return None
     return np.concatenate(final_dets, 0)
 
-def demo_postprocess_helmet(outputs, img_size, p6=False):
 
+def demo_postprocess_helmet(outputs, img_size, p6=False):
     grids = []
     expanded_strides = []
 
@@ -204,8 +202,8 @@ def demo_postprocess_helmet(outputs, img_size, p6=False):
     else:
         strides = [8, 16, 32, 64]
 
-    hsizes = [img_size[0]//stride for stride in strides]
-    wsizes = [img_size[1]//stride for stride in strides]
+    hsizes = [img_size[0] // stride for stride in strides]
+    wsizes = [img_size[1] // stride for stride in strides]
 
     for hsize, wsize, stride in zip(hsizes, wsizes, strides):
         xv, yv = np.meshgrid(np.arange(hsize), np.arange(wsize))
@@ -261,8 +259,8 @@ def to_planar(arr: np.ndarray, input_size: tuple = None) -> np.ndarray:
     )
     padding = (input_size - resize_) // 2
     padded_img[
-        padding[0] : padding[0] + int(img.shape[0] * r),
-        padding[1] : padding[1] + int(img.shape[1] * r),
+    padding[0]: padding[0] + int(img.shape[0] * r),
+    padding[1]: padding[1] + int(img.shape[1] * r),
     ] = resized_img
     image = padded_img.transpose(2, 0, 1)
     return image
@@ -270,9 +268,10 @@ def to_planar(arr: np.ndarray, input_size: tuple = None) -> np.ndarray:
 
 def frame_norm(frame, bbox):
     return (
-        np.clip(np.array(bbox), 0, 1)
-        * np.array([*frame.shape[:2], *frame.shape[:2]])[::-1]
+            np.clip(np.array(bbox), 0, 1)
+            * np.array([*frame.shape[:2], *frame.shape[:2]])[::-1]
     ).astype(int)
+
 
 def runCamera(frame_queue, command, alert, camera_id):
     pipeline = dai.Pipeline()
@@ -300,9 +299,9 @@ def runCamera(frame_queue, command, alert, camera_id):
     yoloDet_helmet = pipeline.createNeuralNetwork()
     yoloDet_helmet.setBlobPath(
         Path(path_helmet_model)
-        .resolve()
-        .absolute()
-        .as_posix()
+            .resolve()
+            .absolute()
+            .as_posix()
     )
     yolox_det_nn_xout_helmet = pipeline.createXLinkOut()
     yolox_det_nn_xout_helmet.setStreamName("yolox_det_nn_helmet")
@@ -323,7 +322,7 @@ def runCamera(frame_queue, command, alert, camera_id):
     print("Starting pipeline...")
     cam_out = device.getOutputQueue("cam_out", 1, True)
     yolox_det_nn_helmet = device.getOutputQueue("yolox_det_nn_helmet")
-    yolox_det_nn_phone = device.getOutputQueue("yolox_det_nn_phone", 4,False)
+    yolox_det_nn_phone = device.getOutputQueue("yolox_det_nn_phone", 4, False)
 
     frame = None
 
@@ -362,8 +361,10 @@ def runCamera(frame_queue, command, alert, camera_id):
                 final_scores, final_cls_inds = dets[:, 4], dets[:, 5]
                 for cls_ind in final_cls_inds:
                     object_name = CLASSES[int(cls_ind)]
-                    if object_name == "phone": phone_exists = True
-                    elif object_name == "person": people_count += 1
+                    if object_name == "phone":
+                        phone_exists = True
+                    elif object_name == "person":
+                        people_count += 1
 
         if yolox_det_data_helmet is not None:
             res = to_tensor_result(yolox_det_data_helmet).get("output")
@@ -414,7 +415,7 @@ def main():
     camera_id = config["LEFT_CAMERA_ID"]
     print(camera_id)
 
-    proccess = mp.Process(target=runCamera, args=(frame_queue, command, alert, camera_id, ))
+    proccess = mp.Process(target=runCamera, args=(frame_queue, command, alert, camera_id,))
     proccess.start()
 
     while True:
@@ -432,6 +433,7 @@ def main():
             break
 
     proccess.kill()
+
 
 if __name__ == '__main__':
     main()

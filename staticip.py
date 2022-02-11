@@ -4,14 +4,17 @@ print("GO")
 (found, info) = dai.DeviceBootloader.getFirstAvailableDevice()
 print(found, info)
 
+
 def check_str(s: str):
     spl = s.split(".")
     if len(spl) != 4:
-        raise ValueError(f"Entered value {s} doesn't contain 3 dots. Value has to be in the following format: '255.255.255.255'")
+        raise ValueError(
+            f"Entered value {s} doesn't contain 3 dots. Value has to be in the following format: '255.255.255.255'")
     for num in spl:
         if 255 < int(num):
             raise ValueError("Entered values can't be above 255!")
     return s
+
 
 if found:
     print(f'Found device with name: {info.desc.name}')
@@ -30,13 +33,16 @@ if found:
             mask = check_str("255.255.255.0")
             gateway = check_str("255.255.255.255")
             mode = 'static' if key == '1' else 'dynamic'
-            val = input(f"Flashing {mode} IPv4 {ipv4}, mask {mask}, gateway {gateway} to the POE device. Enter 'y' to confirm. ").strip()
+            val = input(
+                f"Flashing {mode} IPv4 {ipv4}, mask {mask}, gateway {gateway} to the POE device. Enter 'y' to confirm. ").strip()
             if val != 'y':
                 raise Exception("Flashing aborted.")
 
             conf = dai.DeviceBootloader.Config()
-            if key == '1': conf.setStaticIPv4(ipv4, mask, gateway)
-            elif key == '2': conf.setDynamicIPv4(ipv4, mask, gateway)
+            if key == '1':
+                conf.setStaticIPv4(ipv4, mask, gateway)
+            elif key == '2':
+                conf.setDynamicIPv4(ipv4, mask, gateway)
             (success, error) = bl.flashConfig(conf)
         elif key == '3':
             (success, error) = bl.flashConfigClear()

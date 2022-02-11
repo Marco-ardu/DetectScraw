@@ -195,12 +195,12 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "台塑堆高機AI安全警示系統"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "OAK零件检测系统"))
         self.LabelDriver.setText(_translate("MainWindow", "駕駛鏡頭"))
-        self.LabelRear.setText(_translate("MainWindow", "後鏡頭"))
-        self.LabelFront.setText(_translate("MainWindow", "前鏡頭"))
-        self.labelMessage.setText(_translate("MainWindow", "警示訊息"))
-        self.btnStart.setText(_translate("MainWindow", "相機啟動"))
+        self.LabelRear.setText(_translate("MainWindow", "右镜头"))
+        self.LabelFront.setText(_translate("MainWindow", "左镜头"))
+        self.labelMessage.setText(_translate("MainWindow", "消息提示"))
+        self.btnStart.setText(_translate("MainWindow", "相机启动"))
         self.btnStop.setText(_translate("MainWindow", "停止"))
         self.actionStart.setText(_translate("MainWindow", "Start"))
         self.actionStart.setToolTip(_translate("MainWindow", "<html><head/><body><p>starrrrt</p></body></html>"))
@@ -210,6 +210,7 @@ class Ui_MainWindow(object):
 
 if __name__ == "__main__":
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()

@@ -28,6 +28,6 @@ MainImage_Width: 960
 DriverImage_Height: 420
 DriverImage_Width: 540
 
-MainWindowDimention: [1028, 846]
+MainWindowDimention: [ 1028, 846 ]
 
 PRODUCTION: true

@@ -1,0 +1,18 @@
+{
+  "cam": {
+    "14442C1051B83BD400": "left",
+    "14442C1031CD62D300": "right"
+  },
+  "focus": {
+    "left": 156,
+    "right": 156
+  },
+  "exp_time": {
+    "left": 10000,
+    "right": 10000
+  },
+  "sens_iso": {
+    "left": 400,
+    "right": 400
+  }
+}

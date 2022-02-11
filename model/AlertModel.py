@@ -33,6 +33,22 @@ class NoPhoneAlert(WarnAlert):
     warn_message = '請勿使用手機'
     warn_file = 'sound/no_phone.wav'
 
+
 class NoHelmetAlert(WarnAlert):
     warn_message = '請配戴安全帽'
     warn_file = 'sound/no_helmet.wav'
+
+
+class FailedAlert(WarnAlert):
+    warn_message = '不合格产品'
+    warn_file = 'sound/不合格产品.mp3'
+
+
+class QualifiedAlert(WarnAlert):
+    warn_message = '合格产品'
+    warn_file = 'sound/合格产品.mp3'
+
+
+class ReminderLocationAlert(WarnAlert):
+    warn_message = '请检查位置是否摆放正确'
+    warn_file = 'sound/提醒位置.mp3'
