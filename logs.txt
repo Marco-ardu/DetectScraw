@@ -1,0 +1,79 @@
+2022-02-11 09:32:32.629 | INFO     | __main__:<module>:13 - start
+2022-02-11 09:37:17.089 | INFO     | __main__:<module>:13 - start
+2022-02-11 09:37:59.655 | INFO     | __main__:<module>:13 - start
+2022-02-11 09:40:04.606 | INFO     | __main__:<module>:13 - start
+2022-02-11 09:47:43.302 | INFO     | __main__:<module>:13 - start
+2022-02-11 09:49:03.311 | INFO     | __main__:<module>:13 - start
+2022-02-11 09:50:40.127 | INFO     | __main__:<module>:13 - start
+2022-02-11 09:57:23.900 | INFO     | View:__init__:24 - start
+2022-02-11 09:58:35.089 | INFO     | __main__:<module>:13 - start
+2022-02-11 09:58:48.695 | ERROR    | cameraFunc.DetectScrawRightCamera:run_Scraw_right:185 - Device 14442C1031CD62D300 not found!
+Cannot find any device with given deviceInfo
+2022-02-11 10:00:02.147 | INFO     | __main__:<module>:13 - start
+2022-02-11 10:00:04.816 | ERROR    | cameraFunc.DetectScrawLeftCamera:run_Scraw_left:185 - Device 14442C1051B83BD400 not found!
+Cannot find any device with given deviceInfo
+
+2022-02-11 10:00:15.125 | INFO     | __main__:<module>:13 - start
+2022-02-11 10:00:25.665 | ERROR    | cameraFunc.DetectScrawLeftCamera:run_Scraw_left:185 - Device 14442C1051B83BD400 not found!
+Cannot find any device with given deviceInfo
+2022-02-11 10:00:30.948 | ERROR    | cameraFunc.DetectScrawRightCamera:run_Scraw_right:184 - Device 14442C1031CD62D300 not found!
+Cannot find any device with given deviceInfo
+2022-02-11 10:08:38.386 | INFO     | __main__:<module>:13 - start
+2022-02-11 10:11:47.672 | INFO     | __main__:<module>:13 - start
+2022-02-11 10:59:49.748 | INFO     | __main__:<module>:13 - start
+2022-02-11 11:10:03.098 | INFO     | __main__:<module>:13 - start
+2022-02-11 11:10:09.595 | INFO     | __main__:<module>:13 - start
+2022-02-11 11:14:40.489 | INFO     | __main__:<module>:13 - start
+2022-02-11 11:14:50.216 | ERROR    | setDirection:test_cam:74 - No DepthAI devices found!
+2022-02-11 11:14:56.291 | INFO     | __main__:<module>:13 - start
+2022-02-11 11:15:17.675 | ERROR    | setDirection:test_cam:77 - Only one DepthAI device found!
+2022-02-11 11:33:08.878 | INFO     | __main__:<module>:13 - start
+2022-02-11 11:36:28.927 | ERROR    | setDirection:test_cam:80 - Only one DepthAI device found!
+2022-02-11 11:36:37.234 | INFO     | __main__:<module>:13 - start
+2022-02-11 11:37:07.631 | ERROR    | setDirection:test_cam:80 - Only one DepthAI device found!
+2022-02-11 11:38:17.371 | INFO     | __main__:<module>:13 - start
+2022-02-11 11:38:32.482 | ERROR    | setDirection:test_cam:82 - Only one DepthAI device found!
+2022-02-11 11:39:23.636 | INFO     | __main__:<module>:13 - start
+2022-02-11 11:39:37.445 | ERROR    | setDirection:test_cam:82 - Only one DepthAI device found!
+2022-02-11 11:41:27.314 | INFO     | __main__:<module>:13 - start
+2022-02-11 11:41:55.708 | ERROR    | setDirection:test_cam:82 - Only one DepthAI device found!
+2022-02-11 11:45:25.768 | INFO     | __main__:<module>:13 - start
+2022-02-11 13:12:31.497 | INFO     | __main__:<module>:13 - start
+2022-02-11 13:13:28.027 | INFO     | __main__:<module>:13 - start
+2022-02-11 13:14:57.866 | INFO     | __main__:<module>:13 - start
+2022-02-11 13:21:31.730 | INFO     | __main__:<module>:13 - start
+2022-02-11 13:24:46.824 | INFO     | __main__:<module>:13 - start
+2022-02-11 13:25:11.287 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 450
+2022-02-11 13:25:14.054 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 400
+2022-02-11 13:25:15.337 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 450
+2022-02-11 13:25:15.885 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 500
+2022-02-11 13:25:16.683 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 550
+2022-02-11 13:25:17.011 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 600
+2022-02-11 13:25:17.387 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 650
+2022-02-11 13:25:17.699 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 700
+2022-02-11 13:25:17.950 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 750
+2022-02-11 13:25:18.216 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 800
+2022-02-11 13:25:18.498 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 850
+2022-02-11 13:25:18.748 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 900
+2022-02-11 13:25:19.076 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 950
+2022-02-11 13:25:19.342 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 1000
+2022-02-11 13:25:19.530 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 1050
+2022-02-11 13:25:19.843 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 1100
+2022-02-11 13:25:20.046 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 1150
+2022-02-11 13:25:20.390 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 1200
+2022-02-11 13:25:20.624 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 1250
+2022-02-11 13:25:20.891 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 1300
+2022-02-11 13:25:21.141 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 1350
+2022-02-11 13:25:21.423 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 1400
+2022-02-11 13:25:21.673 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 1450
+2022-02-11 13:25:21.924 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 1500
+2022-02-11 13:25:22.174 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 1550
+2022-02-11 13:25:22.456 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 1600
+2022-02-11 13:25:22.706 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 1600
+2022-02-11 13:25:23.019 | INFO     | setDirection:test_cam:157 - Setting manual exposure, time: 10000 iso: 1600
+2022-02-11 13:25:43.784 | INFO     | __main__:<module>:13 - start
+2022-02-11 13:26:26.303 | ERROR    | setDirection:test_cam:82 - Only one DepthAI device found!
+2022-02-11 13:26:31.346 | INFO     | __main__:<module>:13 - start
+2022-02-11 13:49:08.626 | INFO     | __main__:<module>:13 - start
+2022-02-11 13:53:33.441 | INFO     | __main__:<module>:13 - start
+2022-02-11 14:00:12.323 | INFO     | __main__:<module>:13 - start
