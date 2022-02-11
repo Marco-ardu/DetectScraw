@@ -7,6 +7,7 @@ from pathlib import Path
 import blobconverter
 import depthai as dai
 import numpy as np
+import yaml
 from depthai_sdk import toTensorResult
 from loguru import logger
 
@@ -42,42 +43,9 @@ elif __file__:
     json_path = Path("mxid.json")
 with open(json_path, 'r', encoding='utf-8') as f:
     config = json.load(f)
-parser = argparse.ArgumentParser()
 
-parser.add_argument(
-    "-conf",
-    "--confidence_threshold",
-    default=0.5,
-    type=float,
-    help=f"The confidence threshold of the result " "Default: %(default)s",
-)
-
-parser.add_argument(
-    "-r",
-    "--resolution",
-    choices=rgb_resolutions.keys(),
-    default=720,
-    help=f"Select the camera sensor resolution: {rgb_resolutions}. "
-         "Default: %(default)s",
-)
-
-parser.add_argument(
-    "-n",
-    "--frame_number",
-    default=50,
-    type=int,
-    help=f"How many frames of pictures show the result ? " "Default: %(default)s",
-)
-
-parser.add_argument(
-    "-c",
-    "--max_count",
-    default=20,
-    type=int,
-    help=f"Maximum number of detected pictures",
-)
-
-args = parser.parse_args()
+with open('config.yml', 'r') as stream:
+    args = yaml.load(stream, Loader=yaml.FullLoader)
 
 
 def getDictKey_1(myDict, value):
@@ -92,7 +60,7 @@ def run_Scraw_left(frame_queue, command, alert, repeat_times):
     sens_iso = config.get('sens_iso')
     device_id = getDictKey_1(config.get('cam'), 'left')[0]
     pipeline = dai.Pipeline()  # type: dai.Pipeline
-    resolution = rgb_resolutions[args.resolution]
+    resolution = rgb_resolutions[args['resolution']]
 
     # ColorCamera
     cam = pipeline.createColorCamera()  # type: dai.node.ColorCamera
@@ -174,7 +142,7 @@ def run_Scraw_left(frame_queue, command, alert, repeat_times):
                         final_boxes,
                         scores,
                         final_cls_inds,
-                        conf=args.confidence_threshold,
+                        conf=args['confidence_threshold'],
                         class_names=CLASSES,
                     )
                 try:
@@ -185,4 +153,4 @@ def run_Scraw_left(frame_queue, command, alert, repeat_times):
         if repeat_times != 10:
             repeat_times.value += 1
             run_Scraw_left(frame_queue, command, alert, repeat_times)
-        logger.error(f"Device {device_id} not found!\n"+str(e))
+        logger.error(f"Device {device_id} not found!\n" + str(e))

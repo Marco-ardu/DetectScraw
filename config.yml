@@ -31,3 +31,9 @@ DriverImage_Width: 540
 MainWindowDimention: [ 1028, 846 ]
 
 PRODUCTION: true
+
+frame_number: 50
+max_count: 20
+resolution: 720
+confidence_threshold: 0.5
+
