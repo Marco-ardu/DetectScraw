@@ -22,12 +22,13 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         self.defaultStyleSheet = "background-color: black; font-family:微軟正黑體; font-size:40pt;font-weight: bold; " \
                                  "color:white "
         self.defaultWarnMessage = "消息提示"
-        self.defaultFrontLabelText = "左镜头"
-        self.defaultRearLabelText = "右镜头"
+        self.defaultFrontLabelText = "左相机"
+        self.defaultRearLabelText = "右相机"
 
     def setup(self, controller):
         self.btnStart.clicked.connect(controller.btnStart_clicked)
         self.btnStop.clicked.connect(controller.btnStop_clicked)
+        self.btnSetCamera.clicked.connect(controller.btnSetCamera_clicked)
         self.qs = QSound('sound/welcome.wav', parent=self.labelMessage)
         if config["PRODUCTION"] is True:
             self.qs.play()

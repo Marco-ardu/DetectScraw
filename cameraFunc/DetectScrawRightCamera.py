@@ -10,7 +10,7 @@ import numpy as np
 from depthai_sdk import toTensorResult
 from loguru import logger
 
-from demo_utils import getNNPath
+from demo_utils import getNNPath, setLogPath
 from visualize import vis
 
 CLASSES = [
@@ -21,7 +21,7 @@ CLASSES = [
 parentDir = Path(__file__).parent
 blobconverter.set_defaults(output_dir=parentDir / Path("../models"))
 size = (320, 320)
-nn_path = "cameraFunc/models/yolox_nano_components_add_nms_openvino_2021.4_6shave.blob"
+nn_path = "models/yolox_nano_components_add_nms_openvino_2021.4_6shave.blob"
 rgb_resolutions = {
     800: (800, 1280),
     720: (720, 1280),
@@ -84,7 +84,8 @@ def getDictKey_1(myDict, value):
     return [k for k, v in myDict.items() if v == value]
 
 
-def run_Scraw_right(frame_queue, command, alert):
+def run_Scraw_right(frame_queue, command, alert, repeat_times):
+    setLogPath()
     show_frame = None
     focus = config.get('focus')
     exp_time = config.get('exp_time')
@@ -121,64 +122,66 @@ def run_Scraw_right(frame_queue, command, alert):
     yolox_det_nn_xout = pipeline.createXLinkOut()  # type: dai.node.XLinkOut
     yolox_det_nn_xout.setStreamName("yolox_det_nn")
     yoloDet.out.link(yolox_det_nn_xout.input)
-    found, device_info = dai.Device.getDeviceByMxId(device_id)  # type: bool, dai.DeviceInfo
-    if not found:
-        logger.error(f"Device {device_id} not found!")
-        raise RuntimeError(f"Device {device_id} not found!")
-    device = dai.Device(pipeline, device_info)
-
-    mxid = device.getMxId()
-    cameras = device.getConnectedCameras()
-    usb_speed = device.getUsbSpeed()
-    print("   >>> MXID:", mxid)
-    names_list = {'SUPER': 'USB3.0', 'HIGH': 'USB2.0'}
-    print("   >>> USB speed:", names_list.get(usb_speed.name))
-    cam_out = device.getOutputQueue("cam_out", 1, True)
-    yolox_det_nn = device.getOutputQueue("yolox_det_nn", 30, False)
-    controlQueue = device.getInputQueue("control")
-    ctrl = dai.CameraControl()
-    ctrl.setManualFocus(focus.get('right'))
-    controlQueue.send(ctrl)
-    ctrl = dai.CameraControl()
-    ctrl.setManualExposure(exp_time.get('right'), sens_iso.get('right'))
-    controlQueue.send(ctrl)
-    while command.value != 0:
-        in_rgb = cam_out.get()
-        if in_rgb is not None:
-            frame = in_rgb.getCvFrame()
-            show_frame = frame.copy()
-            yolox_det_data = yolox_det_nn.get()
-            res = toTensorResult(yolox_det_data)
-            bboxes = res.get("bboxes")
-            scores = res.get("scores")
-            selected_indices = res.get("selected_indices.0")
-            selected_indices = selected_indices[
-                (selected_indices >= 0).all(1) & (selected_indices < scores.shape).all(1)
-                ]
-            class_indices = selected_indices[:, 1]
-            box_indices = selected_indices[:, 2]
-            bboxes = bboxes[:, box_indices]
-            scores = [scores[i][j][k] for i, j, k in selected_indices]
-            if bboxes is not None:
-                boxes_xyxy = bboxes.squeeze(0)
-                input_shape = np.array(size)
-                min_r = (input_shape / frame.shape[:2]).min()
-                offset = (np.array(frame.shape[:2]) * min_r - input_shape) / 2
-                offset = np.ravel([offset, offset])
-                final_boxes = (boxes_xyxy + offset[::-1]) / min_r
-                final_cls_inds = class_indices
-                final_scores = np.array(scores)
-                no_screw = final_boxes[(final_cls_inds == 1) & (final_scores > 0.5)]
-                screw = final_boxes[(final_cls_inds == 0) & (final_scores > 0.5)]
-                show_frame = vis(
-                    frame,
-                    final_boxes,
-                    scores,
-                    final_cls_inds,
-                    conf=args.confidence_threshold,
-                    class_names=CLASSES,
-                )
-            try:
-                frame_queue.put_nowait(show_frame)
-            except queue.Full:
-                pass
+    try:
+        found, device_info = dai.Device.getDeviceByMxId(device_id)  # type: bool, dai.DeviceInfo
+        device = dai.Device(pipeline, device_info)
+        mxid = device.getMxId()
+        cameras = device.getConnectedCameras()
+        usb_speed = device.getUsbSpeed()
+        print("   >>> MXID:", mxid)
+        names_list = {'SUPER': 'USB3.0', 'HIGH': 'USB2.0'}
+        print("   >>> USB speed:", names_list.get(usb_speed.name))
+        cam_out = device.getOutputQueue("cam_out", 1, True)
+        yolox_det_nn = device.getOutputQueue("yolox_det_nn", 30, False)
+        controlQueue = device.getInputQueue("control")
+        ctrl = dai.CameraControl()
+        ctrl.setManualFocus(focus.get('right'))
+        controlQueue.send(ctrl)
+        ctrl = dai.CameraControl()
+        ctrl.setManualExposure(exp_time.get('right'), sens_iso.get('right'))
+        controlQueue.send(ctrl)
+        while command.value != 0:
+            in_rgb = cam_out.get()
+            if in_rgb is not None:
+                frame = in_rgb.getCvFrame()
+                show_frame = frame.copy()
+                yolox_det_data = yolox_det_nn.get()
+                res = toTensorResult(yolox_det_data)
+                bboxes = res.get("bboxes")
+                scores = res.get("scores")
+                selected_indices = res.get("selected_indices.0")
+                selected_indices = selected_indices[
+                    (selected_indices >= 0).all(1) & (selected_indices < scores.shape).all(1)
+                    ]
+                class_indices = selected_indices[:, 1]
+                box_indices = selected_indices[:, 2]
+                bboxes = bboxes[:, box_indices]
+                scores = [scores[i][j][k] for i, j, k in selected_indices]
+                if bboxes is not None:
+                    boxes_xyxy = bboxes.squeeze(0)
+                    input_shape = np.array(size)
+                    min_r = (input_shape / frame.shape[:2]).min()
+                    offset = (np.array(frame.shape[:2]) * min_r - input_shape) / 2
+                    offset = np.ravel([offset, offset])
+                    final_boxes = (boxes_xyxy + offset[::-1]) / min_r
+                    final_cls_inds = class_indices
+                    final_scores = np.array(scores)
+                    no_screw = final_boxes[(final_cls_inds == 1) & (final_scores > 0.5)]
+                    screw = final_boxes[(final_cls_inds == 0) & (final_scores > 0.5)]
+                    show_frame = vis(
+                        frame,
+                        final_boxes,
+                        scores,
+                        final_cls_inds,
+                        conf=args.confidence_threshold,
+                        class_names=CLASSES,
+                    )
+                try:
+                    frame_queue.put_nowait(show_frame)
+                except queue.Full:
+                    pass
+    except Exception as e:
+        if repeat_times != 10:
+            repeat_times.value += 1
+            run_Scraw_right(frame_queue, command, alert, repeat_times)
+        logger.error(f"Device {device_id} not found!\n"+str(e))

@@ -27,16 +27,16 @@ class ICameraProcess(ABC):
 
 class BasicCameraProccess(ICameraProcess):
     def __init__(self, command: mp.Value, camera, ImageSignal: pyqtSignal,
-                 AlertSignal: pyqtSignal) -> None:
+                 AlertSignal: pyqtSignal, repeat_times) -> None:
         super().__init__()
         self.command = command
         self.ImageSignal = ImageSignal
         self.AlertSignal = AlertSignal
-
+        self.repeat_times = repeat_times
         self.alert = mp.Value('i', 99)
         self.queue = mp.Queue(4)
         self.proccess = mp.Process(target=camera, args=(
-            self.queue, self.command, self.alert))
+            self.queue, self.command, self.alert, self.repeat_times))
 
     def runCamera(self):
         self.proccess.start()

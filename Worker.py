@@ -15,16 +15,17 @@ class Worker(QThread):
     Alert = pyqtSignal(WarnAlert)
 
     command = mp.Value('i', 0)
+    repeat_times = mp.Value('i', 0)
 
     def run(self):
 
         self.command.value = 1
 
         DetectScrawRightCamera = CameraFactory.CameraFactory(CameraFactory.TextDetectScrawRightCamera)
-        RightCamera = BasicCameraProccess(self.command, DetectScrawRightCamera, self.RearImage, self.Alert)
+        RightCamera = BasicCameraProccess(self.command, DetectScrawRightCamera, self.RearImage, self.Alert, self.repeat_times)
 
         DetectScrawLeftCamera = CameraFactory.CameraFactory(CameraFactory.TextDetectScrawLeftCamera)
-        LeftCamera = BasicCameraProccess(self.command, DetectScrawLeftCamera, self.FrontImage, self.Alert)
+        LeftCamera = BasicCameraProccess(self.command, DetectScrawLeftCamera, self.FrontImage, self.Alert, self.repeat_times)
 
         Cameras = [LeftCamera, RightCamera]
 
@@ -44,5 +45,6 @@ class Worker(QThread):
         self.quit()
 
     def stop(self):
+        self.repeat_times.value = 0
         self.command.value = 0
         self.ThreadActive = False
