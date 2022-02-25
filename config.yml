@@ -1,39 +1,34 @@
-DRIVER_CAMERA_ID:
-  "192.168.1.200"
-FRONT_CAMERA_ID:
-  "192.168.1.201"
-REAR_CAMERA_ID:
-  "192.168.1.100"
-
-LEFT_CAMERA_ID:
-  "192.168.1.200"
-RIGHT_CAMERA_ID:
-  "192.168.1.100"
-
-RED_ALERT_SIGNAL: 2
-YELLOW_ALERT_SIGNAL: 1
-NO_ALERT_SIGNAL: 0
-
-YELLOW_ALERT_DISTANCE: 6000 # in mm
-RED_ALERT_DISTANCE: 1000 # in mm
-
-HEAD_DOSE_COUNT: 5
-HEAD_TILT_COUNT: 5
-YAWN_COUNT: 5
-FATIGUE_TOTAL_COUNT: 8
-
-# 234:416
-MainImage_Height: 540
-MainImage_Width: 960
+DRIVER_CAMERA_ID: 192.168.1.200
 DriverImage_Height: 420
 DriverImage_Width: 540
-
-MainWindowDimention: [ 1028, 846 ]
-
+FATIGUE_TOTAL_COUNT: 8
+FRONT_CAMERA_ID: 192.168.1.201
+HEAD_DOSE_COUNT: 5
+HEAD_TILT_COUNT: 5
+LEFT_CAMERA_ID: 192.168.1.200
+MainImage_Height: 540
+MainImage_Width: 960
+MainWindowDimention:
+- 1028
+- 846
+NO_ALERT_SIGNAL: 0
 PRODUCTION: true
-
+REAR_CAMERA_ID: 192.168.1.100
+RED_ALERT_DISTANCE: 1000
+RED_ALERT_SIGNAL: 2
+RIGHT_CAMERA_ID: 192.168.1.100
+YAWN_COUNT: 5
+YELLOW_ALERT_DISTANCE: 6000
+YELLOW_ALERT_SIGNAL: 1
+confidence_threshold: 0.5
 frame_number: 50
+left_camera_exp_time: 14709
+left_camera_lensPos: 127
+left_camera_mxid: 14442C1031CD62D300
+left_camera_sens_ios: 800
 max_count: 20
 resolution: 720
-confidence_threshold: 0.5
-
+right_camera_exp_time: 28474
+right_camera_lensPos: 138
+right_camera_mxid: 14442C1051B83BD400
+right_camera_sens_ios: 771

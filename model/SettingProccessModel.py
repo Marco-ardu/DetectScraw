@@ -5,7 +5,6 @@ from abc import ABC, abstractmethod
 import yaml
 from PyQt5.QtCore import pyqtSignal
 
-from factories import AlertFactory
 
 with open('config.yml', 'r') as stream:
     config = yaml.load(stream, Loader=yaml.FullLoader)
@@ -25,18 +24,21 @@ class ICameraProcess(ABC):
         return NotImplemented
 
 
-class BasicCameraProcess(ICameraProcess):
+class SettingCameraProcess(ICameraProcess):
     def __init__(self, command: mp.Value, camera, ImageSignal: pyqtSignal,
-                 AlertSignal: pyqtSignal, repeat_times) -> None:
+                 Mxid, repeat_times, lenPos, exp_time, sens_ios, old_value) -> None:
         super().__init__()
         self.command = command
         self.ImageSignal = ImageSignal
-        self.AlertSignal = AlertSignal
         self.repeat_times = repeat_times
-        self.alert = mp.Value('i', 99)
+        self.Mxid = Mxid
         self.queue = mp.Queue(4)
+        self.lenPos = lenPos
+        self.exp_time = exp_time
+        self.sens_ios = sens_ios
+        self.old_value = old_value
         self.proccess = mp.Process(target=camera, args=(
-            self.queue, self.command, self.alert, self.repeat_times))
+            self.queue, self.command, self.Mxid, self.repeat_times, self.lenPos, self.exp_time, self.sens_ios, self.old_value))
 
     def runCamera(self):
         self.proccess.start()
@@ -48,16 +50,6 @@ class BasicCameraProcess(ICameraProcess):
             return frame
         except queue.Empty or queue.Full:
             pass
-
-    def getAlert(self):
-        if self.alert.value == 99:
-            return
-
-        WarnAlert = AlertFactory.AlertList[self.alert.value]
-        WarnAlert.redAlert()
-
-        self.AlertSignal.emit(WarnAlert)
-        self.alert.value = 99
 
     def endCamera(self):
         self.queue.close()

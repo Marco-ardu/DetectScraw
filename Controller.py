@@ -1,6 +1,7 @@
+from SettingController import SettingController
+from Setting_View import ViewSettingDialog
 from View import ViewWindow
 from Worker import Worker
-from setDirection import set_cam
 
 
 class MainController:
@@ -10,8 +11,8 @@ class MainController:
     def start(self):
         self.view.setup(self)
         self.view.show()
+        self.view.c = SettingController(ViewSettingDialog())
         self.view.Worker = Worker()
-        self.view.set_cam = set_cam
         self.view.Worker.finished.connect(self.view.setDefaultView)
 
     def btnStart_clicked(self):
@@ -25,8 +26,5 @@ class MainController:
         self.view.Worker.stop()
         self.view.btnStart.setEnabled(True)
 
-    def btnSetCamera_clicked(self):
-        self.view.Worker.stop()
-        self.view.btnStart.setEnabled(True)
-        self.view.set_cam()
-
+    def startSetting(self):
+        self.view.c.start()

@@ -25,6 +25,10 @@ tips = [
 select_ids = set()
 
 
+def getCameraMxid():
+    return [i.getMxId() for i in dai.Device.getAllAvailableDevices()]
+
+
 def getPipeline(name):
     # Create pipeline
     pipeline = dai.Pipeline()

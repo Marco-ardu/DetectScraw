@@ -11,11 +11,12 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+import yaml
 from PIL import ImageDraw, ImageFont, Image
 
 __all__ = ["mkdir", "nms", "multiclass_nms", "demo_postprocess",
            "play_sound", "getNNPath", "cv2AddChineseText",
-           "setLogPath", "audio_remind", "put_text"]
+           "setLogPath", "audio_remind", "put_text", 'save_yml']
 
 from loguru import logger
 
@@ -102,6 +103,19 @@ def demo_postprocess(outputs, img_size, p6=False):
     outputs[..., 2:4] = np.exp(outputs[..., 2:4]) * expanded_strides
 
     return outputs
+
+
+def save_yml(config_camera):
+    with open('config.yml', 'r') as stream:
+        config = yaml.load(stream, Loader=yaml.FullLoader)
+    with open('config.yml', 'w') as stream:
+        direction = 'left' if config_camera[3] else 'right'
+        config['{}_camera_mxid'.format(direction)] = config_camera[5]
+        config['{}_camera_lensPos'.format(direction)] = config_camera[0]
+        config['{}_camera_exp_time'.format(direction)] = config_camera[1]
+        config['{}_camera_sens_ios'.format(direction)] = config_camera[2]
+        config = yaml.dump(config)
+        stream.write(config)
 
 
 def play_sound(path):

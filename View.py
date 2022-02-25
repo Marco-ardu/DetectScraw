@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (
     QMainWindow
 )
 
-from ui.uiqtcart_new import Ui_MainWindow
+from ui.ui_main import Ui_MainWindow
 
 with open('config.yml', 'r') as stream:
     config = yaml.load(stream, Loader=yaml.FullLoader)
@@ -21,14 +21,14 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
 
         self.defaultStyleSheet = "background-color: black; font-family:微軟正黑體; font-size:40pt;font-weight: bold; " \
                                  "color:white "
-        self.defaultWarnMessage = "消息提示"
+        self.defaultWarnMessage = "消息提醒"
         self.defaultFrontLabelText = "左相机"
         self.defaultRearLabelText = "右相机"
 
     def setup(self, controller):
         self.btnStart.clicked.connect(controller.btnStart_clicked)
         self.btnStop.clicked.connect(controller.btnStop_clicked)
-        self.btnSetCamera.clicked.connect(controller.btnSetCamera_clicked)
+        self.btnSetCamera.clicked.connect(controller.startSetting)
         self.qs = QSound('sound/welcome.wav', parent=self.labelMessage)
         if config["PRODUCTION"] is True:
             self.qs.play()

@@ -6,7 +6,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 
 from factories import CameraFactory
 from model.AlertModel import WarnAlert
-from model.ProccessModel import BasicCameraProccess
+from model.ProccessModel import BasicCameraProcess
 
 
 class Worker(QThread):
@@ -22,10 +22,10 @@ class Worker(QThread):
         self.command.value = 1
 
         DetectScrawRightCamera = CameraFactory.CameraFactory(CameraFactory.TextDetectScrawRightCamera)
-        RightCamera = BasicCameraProccess(self.command, DetectScrawRightCamera, self.RearImage, self.Alert, self.repeat_times)
+        RightCamera = BasicCameraProcess(self.command, DetectScrawRightCamera, self.RearImage, self.Alert, self.repeat_times)
 
         DetectScrawLeftCamera = CameraFactory.CameraFactory(CameraFactory.TextDetectScrawLeftCamera)
-        LeftCamera = BasicCameraProccess(self.command, DetectScrawLeftCamera, self.FrontImage, self.Alert, self.repeat_times)
+        LeftCamera = BasicCameraProcess(self.command, DetectScrawLeftCamera, self.FrontImage, self.Alert, self.repeat_times)
 
         Cameras = [LeftCamera, RightCamera]
 
