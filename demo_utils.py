@@ -81,7 +81,8 @@ def multiclass_nms(boxes, scores, nms_thr, score_thr):
 def demo_postprocess(outputs, img_size, p6=False):
     grids = []
     expanded_strides = []
-
+    # print(outputs,type(outputs))
+    # print(outputs.shape)
     if not p6:
         strides = [8, 16, 32]
     else:
@@ -96,12 +97,10 @@ def demo_postprocess(outputs, img_size, p6=False):
         grids.append(grid)
         shape = grid.shape[:2]
         expanded_strides.append(np.full((*shape, 1), stride))
-
     grids = np.concatenate(grids, 1)
     expanded_strides = np.concatenate(expanded_strides, 1)
     outputs[..., :2] = (outputs[..., :2] + grids) * expanded_strides
     outputs[..., 2:4] = np.exp(outputs[..., 2:4]) * expanded_strides
-
     return outputs
 
 
@@ -110,7 +109,10 @@ def save_yml(config_camera):
         config = yaml.load(stream, Loader=yaml.FullLoader)
     with open('config.yml', 'w') as stream:
         direction = 'left' if config_camera[3] else 'right'
-        config['{}_camera_mxid'.format(direction)] = config_camera[5]
+        if config_camera[3]:
+            config['{}_camera_mxid'.format(direction)] = config_camera[5][0]
+        else:
+            config['{}_camera_mxid'.format(direction)] = config_camera[5][1]
         config['{}_camera_lensPos'.format(direction)] = config_camera[0]
         config['{}_camera_exp_time'.format(direction)] = config_camera[1]
         config['{}_camera_sens_ios'.format(direction)] = config_camera[2]

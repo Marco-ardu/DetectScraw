@@ -2,6 +2,7 @@ import argparse
 import json
 import queue
 import sys
+import traceback
 from pathlib import Path
 
 import blobconverter
@@ -11,7 +12,7 @@ import yaml
 from depthai_sdk import toTensorResult
 from loguru import logger
 
-from demo_utils import getNNPath, setLogPath
+from demo_utils import getNNPath, setLogPath, demo_postprocess, multiclass_nms
 from visualize import vis
 
 CLASSES = [
@@ -22,7 +23,7 @@ CLASSES = [
 parentDir = Path(__file__).parent
 blobconverter.set_defaults(output_dir=parentDir / Path("../models"))
 size = (320, 320)
-nn_path = "models/yolox_nano_components_add_nms_openvino_2021.4_6shave.blob"
+nn_path = "models/yolox_nano_components_openvino_2021.4_6shave.blob"
 rgb_resolutions = {
     800: (800, 1280),
     720: (720, 1280),
@@ -35,30 +36,18 @@ mono_res_opts = {
     800: dai.MonoCameraProperties.SensorResolution.THE_800_P,
 }
 
-json_path = ''
-if getattr(sys, 'frozen', False):
-    dirname = Path(sys.executable).resolve().parent
-    json_path = dirname / 'mxid.json'
-elif __file__:
-    json_path = Path("mxid.json")
-with open(json_path, 'r', encoding='utf-8') as f:
-    config = json.load(f)
 
 with open('config.yml', 'r') as stream:
     args = yaml.load(stream, Loader=yaml.FullLoader)
 
 
-def getDictKey_1(myDict, value):
-    return [k for k, v in myDict.items() if v == value]
-
-
 def run_Scraw_right(frame_queue, command, alert, repeat_times):
     setLogPath()
     show_frame = None
-    focus = config.get('focus')
-    exp_time = config.get('exp_time')
-    sens_iso = config.get('sens_iso')
-    device_id = getDictKey_1(config.get('cam'), 'right')[0]
+    focus = args['right_camera_lensPos']
+    exp_time = args['right_camera_exp_time']
+    sens_iso = args['right_camera_sens_ios']
+    device_id = args['right_camera_mxid']
     pipeline = dai.Pipeline()  # type: dai.Pipeline
     resolution = rgb_resolutions[args['resolution']]
 
@@ -91,8 +80,8 @@ def run_Scraw_right(frame_queue, command, alert, repeat_times):
     yolox_det_nn_xout.setStreamName("yolox_det_nn")
     yoloDet.out.link(yolox_det_nn_xout.input)
     try:
-        found, device_info = dai.Device.getDeviceByMxId(device_id)  # type: bool, dai.DeviceInfo
-        device = dai.Device(pipeline, device_info)
+        found, device_info = dai.Device.getDeviceByMxId(device_id)
+        device = dai.Device(pipeline, device_info, True)
         mxid = device.getMxId()
         cameras = device.getConnectedCameras()
         usb_speed = device.getUsbSpeed()
@@ -103,10 +92,10 @@ def run_Scraw_right(frame_queue, command, alert, repeat_times):
         yolox_det_nn = device.getOutputQueue("yolox_det_nn", 30, False)
         controlQueue = device.getInputQueue("control")
         ctrl = dai.CameraControl()
-        ctrl.setManualFocus(focus.get('right'))
+        ctrl.setManualFocus(focus)
         controlQueue.send(ctrl)
         ctrl = dai.CameraControl()
-        ctrl.setManualExposure(exp_time.get('right'), sens_iso.get('right'))
+        ctrl.setManualExposure(exp_time, sens_iso)
         controlQueue.send(ctrl)
         while command.value != 0:
             in_rgb = cam_out.get()
@@ -114,32 +103,31 @@ def run_Scraw_right(frame_queue, command, alert, repeat_times):
                 frame = in_rgb.getCvFrame()
                 show_frame = frame.copy()
                 yolox_det_data = yolox_det_nn.get()
-                res = toTensorResult(yolox_det_data)
-                bboxes = res.get("bboxes")
-                scores = res.get("scores")
-                selected_indices = res.get("selected_indices.0")
-                selected_indices = selected_indices[
-                    (selected_indices >= 0).all(1) & (selected_indices < scores.shape).all(1)
-                    ]
-                class_indices = selected_indices[:, 1]
-                box_indices = selected_indices[:, 2]
-                bboxes = bboxes[:, box_indices]
-                scores = [scores[i][j][k] for i, j, k in selected_indices]
-                if bboxes is not None:
-                    boxes_xyxy = bboxes.squeeze(0)
-                    input_shape = np.array(size)
-                    min_r = (input_shape / frame.shape[:2]).min()
-                    offset = (np.array(frame.shape[:2]) * min_r - input_shape) / 2
-                    offset = np.ravel([offset, offset])
-                    final_boxes = (boxes_xyxy + offset[::-1]) / min_r
-                    final_cls_inds = class_indices
-                    final_scores = np.array(scores)
+                res = toTensorResult(yolox_det_data).get("output")
+                predictions = demo_postprocess(res, (320, 320), p6=False)[0]
+                boxes = predictions[:, :4]
+                scores = predictions[:, 4, None] * predictions[:, 5:]
+                boxes_xyxy = np.ones_like(boxes)
+                boxes_xyxy[:, 0] = boxes[:, 0] - boxes[:, 2] / 2.0
+                boxes_xyxy[:, 1] = boxes[:, 1] - boxes[:, 3] / 2.0
+                boxes_xyxy[:, 2] = boxes[:, 0] + boxes[:, 2] / 2.0
+                boxes_xyxy[:, 3] = boxes[:, 1] + boxes[:, 3] / 2.0
+
+                input_shape = np.array([320, 320])
+                min_r = (input_shape / frame.shape[:2]).min()
+                offset = (np.array(frame.shape[:2]) * min_r - input_shape) / 2
+                offset = np.ravel([offset, offset])
+                boxes_xyxy = (boxes_xyxy + offset[::-1]) / min_r
+                dets = multiclass_nms(boxes_xyxy, scores, nms_thr=0.45, score_thr=0.2)
+                if dets is not None:
+                    final_boxes = dets[:, :4]
+                    final_scores, final_cls_inds = dets[:, 4], dets[:, 5]
                     no_screw = final_boxes[(final_cls_inds == 1) & (final_scores > 0.5)]
                     screw = final_boxes[(final_cls_inds == 0) & (final_scores > 0.5)]
                     show_frame = vis(
                         frame,
                         final_boxes,
-                        scores,
+                        final_scores,
                         final_cls_inds,
                         conf=args['confidence_threshold'],
                         class_names=CLASSES,
@@ -149,6 +137,7 @@ def run_Scraw_right(frame_queue, command, alert, repeat_times):
                 except queue.Full:
                     pass
     except Exception as e:
+        print(traceback.format_exc())
         if repeat_times != 10:
             repeat_times.value += 1
             run_Scraw_right(frame_queue, command, alert, repeat_times)

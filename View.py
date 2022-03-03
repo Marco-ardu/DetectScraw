@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (
     QMainWindow
 )
 
-from ui.ui_main import Ui_MainWindow
+from ui.ui_main_new import Ui_MainWindow
 
 with open('config.yml', 'r') as stream:
     config = yaml.load(stream, Loader=yaml.FullLoader)
@@ -21,15 +21,22 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
 
         self.defaultStyleSheet = "background-color: black; font-family:微軟正黑體; font-size:40pt;font-weight: bold; " \
                                  "color:white "
-        self.defaultWarnMessage = "消息提醒"
         self.defaultFrontLabelText = "左相机"
         self.defaultRearLabelText = "右相机"
+        self.defaultSettingLensPos_value = 156
+        self.defaultSettingExp_time_value = 20000
+        self.defaultSettingSens_ios_value = 800
 
     def setup(self, controller):
         self.btnStart.clicked.connect(controller.btnStart_clicked)
         self.btnStop.clicked.connect(controller.btnStop_clicked)
-        self.btnSetCamera.clicked.connect(controller.startSetting)
-        self.qs = QSound('sound/welcome.wav', parent=self.labelMessage)
+        self.SetCamera.clicked.connect(controller.startSetting)
+        self.SaveButton.clicked.connect(controller.btn_save)
+        self.lensPos_value.valueChanged.connect(controller.change_lenPos)
+        self.exp_time_value.valueChanged.connect(controller.change_exp_time)
+        self.sens_ios_value.valueChanged.connect(controller.change_sens_ios)
+        self.leftCameraButton.toggled.connect(controller.change_checked_left)
+        self.qs = QSound('sound/welcome.wav')
         if config["PRODUCTION"] is True:
             self.qs.play()
 
@@ -37,9 +44,11 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
     def setDefaultView(self):
         self.LabelFront.clear()
         self.LabelRear.clear()
+        self.lensPos_value.setValue(self.defaultSettingLensPos_value)
+        self.exp_time_value.setValue(self.defaultSettingExp_time_value)
+        self.sens_ios_value.setValue(self.defaultSettingSens_ios_value)
         self.LabelFront.setText(self.defaultFrontLabelText)
         self.LabelRear.setText(self.defaultRearLabelText)
-        self.labelMessage.setText(self.defaultWarnMessage)
 
     @pyqtSlot(np.ndarray)
     def UpdateFrontSlot(self, Image):
@@ -50,8 +59,7 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         self.setImg(Image, self.LabelRear)
 
     def keyPressEvent(self, event):
-        key = event.key()
-        print(key)
+        print(event.text())
 
     def runAlert(self, WarnAlert):
         if not self.qs.isFinished():

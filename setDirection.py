@@ -6,6 +6,7 @@ from pathlib import Path
 import cv2
 import depthai as dai
 import numpy as np
+import yaml
 from loguru import logger
 
 from demo_utils import cv2AddChineseText
@@ -23,6 +24,15 @@ tips = [
 ]
 
 select_ids = set()
+
+
+def isExist():
+    with open('config.yml', 'r') as stream:
+        args = yaml.load(stream, Loader=yaml.FullLoader)
+    if args['left_camera_mxid'] is None or args['right_camera_mxid'] is None:
+        return getCameraMxid()
+    else:
+        return [args['left_camera_mxid'], args['right_camera_mxid']]
 
 
 def getCameraMxid():

@@ -26,19 +26,19 @@ class ICameraProcess(ABC):
 
 class SettingCameraProcess(ICameraProcess):
     def __init__(self, command: mp.Value, camera, ImageSignal: pyqtSignal,
-                 Mxid, repeat_times, lenPos, exp_time, sens_ios, old_value) -> None:
+                 Mxid, repeat_times, new_value, old_value, left_right, status) -> None:
         super().__init__()
         self.command = command
         self.ImageSignal = ImageSignal
         self.repeat_times = repeat_times
         self.Mxid = Mxid
         self.queue = mp.Queue(4)
-        self.lenPos = lenPos
-        self.exp_time = exp_time
-        self.sens_ios = sens_ios
+        self.new_value = new_value
         self.old_value = old_value
+        self.left_right = left_right
+        self.status = status
         self.proccess = mp.Process(target=camera, args=(
-            self.queue, self.command, self.Mxid, self.repeat_times, self.lenPos, self.exp_time, self.sens_ios, self.old_value))
+            self.queue, self.command, self.Mxid, self.repeat_times, self.new_value, self.old_value, self.left_right, self.status))
 
     def runCamera(self):
         self.proccess.start()

@@ -1,6 +1,5 @@
 import multiprocessing as mp
 
-import keyboard
 import numpy
 from PyQt5.QtCore import QThread, pyqtSignal
 
@@ -10,7 +9,8 @@ from model.SettingProccessModel import SettingCameraProcess
 
 
 class SettingWorker(QThread):
-    CameraImage = pyqtSignal(numpy.ndarray)
+    FrontImage = pyqtSignal(numpy.ndarray)
+    RearImage = pyqtSignal(numpy.ndarray)
     command = mp.Value('i', 0)
     repeat_times = mp.Value('i', 0)
     lenPos_new = mp.Value('Q', 156)
@@ -19,26 +19,40 @@ class SettingWorker(QThread):
     lenPos_old = mp.Value('Q', 156)
     exp_time_old = mp.Value('Q', 20000)
     sens_ios_old = mp.Value('Q', 800)
+    status = mp.Value('i', 1)
 
     def __init__(self, Mxid):
         super().__init__()
-        self.old_value = {'lenPos_old': self.lenPos_old, 'exp_time_old': self.exp_time_old, 'sens_ios_old': self.sens_ios_old}
+        self.old_value = {'lenPos_old': self.lenPos_old, 'exp_time_old': self.exp_time_old,
+                          'sens_ios_old': self.sens_ios_old}
+        self.new_value = {'lenPos_new': self.lenPos_new, 'exp_time_new': self.exp_time_new,
+                          'sens_ios_new': self.sens_ios_new}
         self.Mxid = Mxid
         self.save_yml = save_yml
 
     def run(self):
         self.command.value = 1
-        SettingCamera = CameraFactory.CameraFactory(CameraFactory.TextCamera)
-        Setting_Camera = SettingCameraProcess(self.command, SettingCamera, self.CameraImage, self.Mxid,
-                                              self.repeat_times, self.lenPos_new, self.exp_time_new, self.sens_ios_new, self.old_value)
+        LeftCamera = CameraFactory.CameraFactory(CameraFactory.TextCamera)
+        Left_Camera = SettingCameraProcess(self.command, LeftCamera, self.FrontImage, self.Mxid[0],
+                                           self.repeat_times, self.new_value,
+                                           self.old_value, 'left', self.status)
+        RightCamera = CameraFactory.CameraFactory(CameraFactory.TextCamera)
+        Right_Camera = SettingCameraProcess(self.command, RightCamera, self.RearImage, self.Mxid[1],
+                                            self.repeat_times, self.new_value,
+                                            self.old_value, 'right', self.status)
 
-        Setting_Camera.runCamera()
+        Cameras = [Left_Camera, Right_Camera]
+
+        for Camera in Cameras:
+            Camera.runCamera()
         self.ThreadActive = True
 
         while self.ThreadActive:
-            Setting_Camera.getFrame()
+            for Camera in Cameras:
+                Camera.getFrame()
 
-        Setting_Camera.endCamera()
+        for Camera in Cameras:
+            Camera.endCamera()
 
         self.quit()
 
@@ -51,6 +65,7 @@ class SettingWorker(QThread):
         self.lenPos_old.value = 156
         self.exp_time_old.value = 20000
         self.sens_ios_old.value = 800
+        self.status.value = 1
         self.ThreadActive = False
 
     def save(self, config):
@@ -64,3 +79,6 @@ class SettingWorker(QThread):
 
     def set_sens_ios(self, value):
         self.sens_ios_new.value = value
+
+    def change_status(self, value):
+        self.status.value = value

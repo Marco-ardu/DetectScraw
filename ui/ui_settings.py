@@ -70,6 +70,8 @@ class Ui_DialogSettings(object):
         self.rebootCamera.setFont(font)
         self.rebootCamera.setObjectName("rebootCamera")
         self.horizontalLayout.addWidget(self.rebootCamera)
+        self.horizontalLayout.setStretch(0, 2)
+        self.horizontalLayout.setStretch(1, 1)
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
