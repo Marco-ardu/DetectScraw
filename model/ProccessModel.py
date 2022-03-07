@@ -27,16 +27,20 @@ class ICameraProcess(ABC):
 
 class BasicCameraProcess(ICameraProcess):
     def __init__(self, command: mp.Value, camera, ImageSignal: pyqtSignal,
-                 AlertSignal: pyqtSignal, repeat_times) -> None:
+                 Mxid, repeat_times, new_value, old_value, left_right, status, barcode) -> None:
         super().__init__()
         self.command = command
         self.ImageSignal = ImageSignal
-        self.AlertSignal = AlertSignal
         self.repeat_times = repeat_times
-        self.alert = mp.Value('i', 99)
+        self.Mxid = Mxid
         self.queue = mp.Queue(4)
+        self.new_value = new_value
+        self.old_value = old_value
+        self.left_right = left_right
+        self.status = status
+        self.barcode = barcode
         self.proccess = mp.Process(target=camera, args=(
-            self.queue, self.command, self.alert, self.repeat_times))
+            self.queue, self.command, self.Mxid, self.repeat_times, self.new_value, self.old_value, self.left_right, self.status, self.barcode))
 
     def runCamera(self):
         self.proccess.start()
@@ -50,14 +54,15 @@ class BasicCameraProcess(ICameraProcess):
             pass
 
     def getAlert(self):
-        if self.alert.value == 99:
-            return
-
-        WarnAlert = AlertFactory.AlertList[self.alert.value]
-        WarnAlert.redAlert()
-
-        self.AlertSignal.emit(WarnAlert)
-        self.alert.value = 99
+        pass
+        # if self.alert.value == 99:
+        #     return
+        #
+        # WarnAlert = AlertFactory.AlertList[self.alert.value]
+        # WarnAlert.redAlert()
+        #
+        # self.AlertSignal.emit(WarnAlert)
+        # self.alert.value = 99
 
     def endCamera(self):
         self.queue.close()

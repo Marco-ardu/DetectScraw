@@ -28,17 +28,20 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         self.defaultSettingSens_ios_value = 800
 
     def setup(self, controller):
+        self.controller = controller
         self.btnStart.clicked.connect(controller.btnStart_clicked)
         self.btnStop.clicked.connect(controller.btnStop_clicked)
-        self.SetCamera.clicked.connect(controller.startSetting)
+        self.ShutDown.clicked.connect(controller.shutdown)
         self.SaveButton.clicked.connect(controller.btn_save)
         self.lensPos_value.valueChanged.connect(controller.change_lenPos)
         self.exp_time_value.valueChanged.connect(controller.change_exp_time)
         self.sens_ios_value.valueChanged.connect(controller.change_sens_ios)
         self.leftCameraButton.toggled.connect(controller.change_checked_left)
-        self.qs = QSound('sound/welcome.wav')
-        if config["PRODUCTION"] is True:
-            self.qs.play()
+        self.autoexp.stateChanged.connect(controller.change_auto_exp)
+        self.autofocus.stateChanged.connect(controller.change_auto_focus)
+        # self.qs = QSound('sound/welcome.wav')
+        # if config["PRODUCTION"] is True:
+        #     self.qs.play()
 
     @pyqtSlot()
     def setDefaultView(self):
@@ -49,6 +52,7 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         self.sens_ios_value.setValue(self.defaultSettingSens_ios_value)
         self.LabelFront.setText(self.defaultFrontLabelText)
         self.LabelRear.setText(self.defaultRearLabelText)
+        self.leftCameraButton.setChecked(True)
 
     @pyqtSlot(np.ndarray)
     def UpdateFrontSlot(self, Image):
@@ -59,7 +63,16 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         self.setImg(Image, self.LabelRear)
 
     def keyPressEvent(self, event):
-        print(event.text())
+        self.BarCodeValue.setFocus()
+        self.BarCodeValue.editingFinished.connect(self.controller.barcode_edit)
+        if event.key() == Qt.Key_Backspace:
+            text = self.BarCodeValue.text()
+            self.BarCodeValue.setText(text[:-1])
+        elif event.key() == Qt.Key_Delete:
+            self.BarCodeValue.setText('')
+        else:
+            text = self.BarCodeValue.text()
+            self.BarCodeValue.setText(text + event.text())
 
     def runAlert(self, WarnAlert):
         if not self.qs.isFinished():

@@ -1,15 +1,12 @@
-from cameraFunc import DetectScrawRightCamera, DetectScrawLeftCamera, SettingCamera
+from cameraFunc import DetectScrawCamera
 
-TextDetectScrawRightCamera = 'DetectScrawRightCamera'
-TextDetectScrawLeftCamera = 'DetectScrawLeftCamera'
-TextCamera = 'SettingCamera'
+
+TextDetectScrawCamera = 'DetectScrawCamera'
 
 
 def CameraFactory(CameraIndex):
     CameraDict = {
-        TextDetectScrawLeftCamera: DetectScrawLeftCamera.run_Scraw_left,
-        TextDetectScrawRightCamera: DetectScrawRightCamera.run_Scraw_right,
-        TextCamera: SettingCamera.runCamera,
+        TextDetectScrawCamera: DetectScrawCamera.run_Scraw_Camera,
     }
 
     return CameraDict[CameraIndex]

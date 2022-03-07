@@ -1,7 +1,4 @@
-import argparse
-import json
 import queue
-import sys
 import traceback
 from pathlib import Path
 
@@ -40,13 +37,11 @@ with open('config.yml', 'r') as stream:
     args = yaml.load(stream, Loader=yaml.FullLoader)
 
 
-def run_Scraw_left(frame_queue, command, alert, repeat_times):
+def run_Scraw_Camera(frame_queue, command, device_mxid, repeat_times, new_value, old_value, left_right, status,
+                     barcode):
     setLogPath()
+    logger.info('start {} camera'.format(left_right))
     show_frame = None
-    focus = args['left_camera_lensPos']
-    exp_time = args['left_camera_exp_time']
-    sens_iso = args['left_camera_sens_ios']
-    device_id = args['left_camera_mxid']
     pipeline = dai.Pipeline()  # type: dai.Pipeline
     resolution = rgb_resolutions[args['resolution']]
 
@@ -79,11 +74,9 @@ def run_Scraw_left(frame_queue, command, alert, repeat_times):
     yolox_det_nn_xout.setStreamName("yolox_det_nn")
     yoloDet.out.link(yolox_det_nn_xout.input)
     try:
-        found, device_info = dai.Device.getDeviceByMxId(device_id)
+        found, device_info = dai.Device.getDeviceByMxId(device_mxid)
         device = dai.Device(pipeline, device_info, True)
-
         mxid = device.getMxId()
-        cameras = device.getConnectedCameras()
         usb_speed = device.getUsbSpeed()
         print("   >>> MXID:", mxid)
         names_list = {'SUPER': 'USB3.0', 'HIGH': 'USB2.0'}
@@ -92,11 +85,10 @@ def run_Scraw_left(frame_queue, command, alert, repeat_times):
         yolox_det_nn = device.getOutputQueue("yolox_det_nn", 30, False)
         controlQueue = device.getInputQueue("control")
         ctrl = dai.CameraControl()
-        ctrl.setManualFocus(focus)
+        ctrl.setManualFocus(new_value['lenPos_new'].value)
+        ctrl.setManualExposure(new_value['exp_time_new'].value, new_value['sens_ios_new'].value)
         controlQueue.send(ctrl)
-        ctrl = dai.CameraControl()
-        ctrl.setManualExposure(exp_time, sens_iso)
-        controlQueue.send(ctrl)
+        flag = '1' if left_right == 'left' else '2'
         while command.value != 0:
             in_rgb = cam_out.get()
             if in_rgb is not None:
@@ -134,11 +126,36 @@ def run_Scraw_left(frame_queue, command, alert, repeat_times):
                     )
                 try:
                     frame_queue.put_nowait(show_frame)
+                    if status['auto_focus_status'].value == 1:
+                        ctrl = dai.CameraControl()
+                        ctrl.setAutoFocusMode(dai.CameraControl.AutoFocusMode.CONTINUOUS_VIDEO)
+                        controlQueue.send(ctrl)
+                    if status['auto_exp_status'].value == 1:
+                        ctrl = dai.CameraControl()
+                        ctrl.setAutoExposureEnable()
+                        controlQueue.send(ctrl)
+                    if status['setting_status'].value == eval(flag):
+                        if new_value['lenPos_new'].value != old_value['lenPos_old'].value and status['auto_focus_status'].value !=1:
+                            ctrl = dai.CameraControl()
+                            ctrl.setManualFocus(new_value['lenPos_new'].value)
+                            old_value['lenPos_old'].value = new_value['lenPos_new'].value
+                            controlQueue.send(ctrl)
+                        if new_value['exp_time_new'].value != old_value['exp_time_old'].value or new_value[
+                            'sens_ios_new'].value != old_value['sens_ios_old'].value and status['auto_exp_status'].value != 1:
+                            ctrl = dai.CameraControl()
+                            ctrl.setManualExposure(new_value['exp_time_new'].value, new_value['sens_ios_new'].value)
+                            old_value['exp_time_old'].value = new_value['exp_time_new'].value
+                            old_value['sens_ios_old'].value = new_value['sens_ios_new'].value
+                            controlQueue.send(ctrl)
+                    else:
+                        in_rgb = cam_out.get()
+                        frame_queue.put_nowait(in_rgb.getCvFrame())
                 except queue.Full:
                     pass
     except Exception as e:
-        print(traceback.format_exc())
+        # print(traceback.format_exc())
         if repeat_times != 10:
             repeat_times.value += 1
-            run_Scraw_left(frame_queue, command, alert, repeat_times)
-        logger.error(f"Device {device_id} not found!\n" + str(e))
+            run_Scraw_Camera(frame_queue, command, device_mxid, repeat_times, new_value, old_value, left_right, status,
+                             barcode)
+        logger.error(f"Device {device_mxid} not found!\n" + str(e))
