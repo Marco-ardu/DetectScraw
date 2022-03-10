@@ -18,9 +18,9 @@ CLASSES = [
 ]
 
 parentDir = Path(__file__).parent
-blobconverter.set_defaults(output_dir=parentDir / Path("../models"))
+blobconverter.set_defaults(output_dir=parentDir / Path("models"))
 size = (320, 320)
-nn_path = "models/yolox_nano_components_openvino_2021.4_6shave.blob"
+nn_path = "cameraFunc/models/yolox_nano_components_openvino_2021.4_6shave.blob"
 rgb_resolutions = {
     800: (800, 1280),
     720: (720, 1280),
@@ -37,9 +37,12 @@ with open('config.yml', 'r') as stream:
     args = yaml.load(stream, Loader=yaml.FullLoader)
 
 
-def run_Scraw_Camera(frame_queue, command, device_mxid, repeat_times, new_value, old_value, left_right, status,
-                     barcode):
+def run_Scraw_Camera(frame_queue, command, alert, device_mxid, repeat_times, new_value, old_value, left_right, status,
+                     barcode, result):
     setLogPath()
+    frames_qualified = ({})
+    max_count = args['max_count']
+    Barcode = None
     logger.info('start {} camera'.format(left_right))
     show_frame = None
     pipeline = dai.Pipeline()  # type: dai.Pipeline
@@ -50,6 +53,7 @@ def run_Scraw_Camera(frame_queue, command, device_mxid, repeat_times, new_value,
     cam.setPreviewSize(resolution[::-1])
     cam.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
     cam.setInterleaved(False)
+
     cam.setBoardSocket(dai.CameraBoardSocket.RGB)
     cam_xout = pipeline.createXLinkOut()  # type: dai.node.XLinkOut
     cam_xout.setStreamName("cam_out")
@@ -110,52 +114,74 @@ def run_Scraw_Camera(frame_queue, command, device_mxid, repeat_times, new_value,
                 offset = (np.array(frame.shape[:2]) * min_r - input_shape) / 2
                 offset = np.ravel([offset, offset])
                 boxes_xyxy = (boxes_xyxy + offset[::-1]) / min_r
-                dets = multiclass_nms(boxes_xyxy, scores, nms_thr=0.45, score_thr=0.2)
-                if dets is not None:
-                    final_boxes = dets[:, :4]
-                    final_scores, final_cls_inds = dets[:, 4], dets[:, 5]
-                    no_screw = final_boxes[(final_cls_inds == 1) & (final_scores > 0.5)]
-                    screw = final_boxes[(final_cls_inds == 0) & (final_scores > 0.5)]
-                    show_frame = vis(
-                        frame,
-                        final_boxes,
-                        final_scores,
-                        final_cls_inds,
-                        conf=args['confidence_threshold'],
-                        class_names=CLASSES,
-                    )
-                try:
-                    frame_queue.put_nowait(show_frame)
-                    if status['auto_focus_status'].value == 1:
+                dets = multiclass_nms(boxes_xyxy, scores, nms_thr=0.2, score_thr=0.2)
+                if command.value == eval(flag):
+                    if status['auto_focus_status'].value == 2:
+                        logger.info('{} Camera Autoexposure enable'.format(left_right))
                         ctrl = dai.CameraControl()
                         ctrl.setAutoFocusMode(dai.CameraControl.AutoFocusMode.CONTINUOUS_VIDEO)
                         controlQueue.send(ctrl)
-                    if status['auto_exp_status'].value == 1:
+                        status['auto_focus_status'].value = 1
+                    if status['auto_exp_status'].value == 2:
+                        logger.info('{} Camera Autofocus enable, continuous'.format(left_right))
                         ctrl = dai.CameraControl()
                         ctrl.setAutoExposureEnable()
                         controlQueue.send(ctrl)
-                    if status['setting_status'].value == eval(flag):
-                        if new_value['lenPos_new'].value != old_value['lenPos_old'].value and status['auto_focus_status'].value !=1:
-                            ctrl = dai.CameraControl()
-                            ctrl.setManualFocus(new_value['lenPos_new'].value)
-                            old_value['lenPos_old'].value = new_value['lenPos_new'].value
-                            controlQueue.send(ctrl)
-                        if new_value['exp_time_new'].value != old_value['exp_time_old'].value or new_value[
-                            'sens_ios_new'].value != old_value['sens_ios_old'].value and status['auto_exp_status'].value != 1:
-                            ctrl = dai.CameraControl()
-                            ctrl.setManualExposure(new_value['exp_time_new'].value, new_value['sens_ios_new'].value)
-                            old_value['exp_time_old'].value = new_value['exp_time_new'].value
-                            old_value['sens_ios_old'].value = new_value['sens_ios_new'].value
-                            controlQueue.send(ctrl)
-                    else:
-                        in_rgb = cam_out.get()
-                        frame_queue.put_nowait(in_rgb.getCvFrame())
+                        status['auto_exp_status'].value = 1
+                    if new_value['lenPos_new'].value != old_value['lenPos_old'].value \
+                            and status['auto_focus_status'].value != 2:
+                        logger.info('set {} Camera lenPos: {}'.format(left_right, new_value['lenPos_new'].value))
+                        ctrl = dai.CameraControl()
+                        ctrl.setManualFocus(new_value['lenPos_new'].value)
+                        old_value['lenPos_old'].value = new_value['lenPos_new'].value
+                        controlQueue.send(ctrl)
+                    if new_value['exp_time_new'].value != old_value['exp_time_old'].value \
+                            or new_value['sens_ios_new'].value != old_value['sens_ios_old'].value \
+                            and status['auto_exp_status'].value != 2:
+                        logger.info('set {} Camera exp_time: {}， sens_ios: {}'.format(left_right,
+                                                                                      new_value['exp_time_new'].value,
+                                                                                      new_value['sens_ios_new'].value))
+                        ctrl = dai.CameraControl()
+                        ctrl.setManualExposure(new_value['exp_time_new'].value, new_value['sens_ios_new'].value)
+                        old_value['exp_time_old'].value = new_value['exp_time_new'].value
+                        old_value['sens_ios_old'].value = new_value['sens_ios_new'].value
+                        controlQueue.send(ctrl)
+                try:
+                    if dets is not None:
+                        final_boxes = dets[:, :4]
+                        final_scores, final_cls_inds = dets[:, 4], dets[:, 5]
+                        no_screw = final_boxes[(final_cls_inds == 1) & (final_scores > 0.5)]
+                        screw = final_boxes[(final_cls_inds == 0) & (final_scores > 0.5)]
+                        show_frame = vis(
+                            frame,
+                            final_boxes,
+                            final_scores,
+                            final_cls_inds,
+                            conf=args['confidence_threshold'],
+                            class_names=CLASSES,
+                        )
+                        if not barcode.empty():
+                            max_count = 20
+                            Barcode = barcode.get_nowait()
+                            print(Barcode)
+                            frames_qualified.setdefault(Barcode, {}).setdefault(left_right, {"res": [],
+                                                                                             "count": []})
+                        if max_count != 0 and Barcode is not None:
+                            frames_qualified[Barcode][left_right]['res'].append(len(no_screw) == 0 and len(screw) == 3)
+                            frames_qualified[Barcode][left_right]['count'].append(len(no_screw) + len(screw))
+                            max_count -= 1
+                        elif max_count == 0 and Barcode is not None:
+                            result.put_nowait(frames_qualified)
+                            print(result.get_nowait())
+                            Barcode = None
+                    frame_queue.put_nowait(show_frame)
                 except queue.Full:
                     pass
     except Exception as e:
-        # print(traceback.format_exc())
+        print(traceback.print_exc())
         if repeat_times != 10:
             repeat_times.value += 1
-            run_Scraw_Camera(frame_queue, command, device_mxid, repeat_times, new_value, old_value, left_right, status,
-                             barcode)
+            run_Scraw_Camera(frame_queue, command, alert, device_mxid, repeat_times, new_value, old_value, left_right,
+                             status,
+                             barcode, result)
         logger.error(f"Device {device_mxid} not found!\n" + str(e))

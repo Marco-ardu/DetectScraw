@@ -18,9 +18,6 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
-
-        self.defaultStyleSheet = "background-color: black; font-family:微軟正黑體; font-size:40pt;font-weight: bold; " \
-                                 "color:white "
         self.defaultFrontLabelText = "左相机"
         self.defaultRearLabelText = "右相机"
         self.defaultSettingLensPos_value = 156
@@ -37,11 +34,11 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         self.exp_time_value.valueChanged.connect(controller.change_exp_time)
         self.sens_ios_value.valueChanged.connect(controller.change_sens_ios)
         self.leftCameraButton.toggled.connect(controller.change_checked_left)
-        self.autoexp.stateChanged.connect(controller.change_auto_exp)
-        self.autofocus.stateChanged.connect(controller.change_auto_focus)
-        # self.qs = QSound('sound/welcome.wav')
-        # if config["PRODUCTION"] is True:
-        #     self.qs.play()
+        self.autoexp.clicked.connect(controller.change_auto_exp)
+        self.autofocus.clicked.connect(controller.change_auto_focus)
+        self.qs = QSound('sound/welcome.wav')
+        if config["PRODUCTION"] is True:
+            self.qs.play()
 
     @pyqtSlot()
     def setDefaultView(self):
@@ -69,7 +66,7 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
             text = self.BarCodeValue.text()
             self.BarCodeValue.setText(text[:-1])
         elif event.key() == Qt.Key_Delete:
-            self.BarCodeValue.setText('')
+            self.BarCodeValue.clear()
         else:
             text = self.BarCodeValue.text()
             self.BarCodeValue.setText(text + event.text())
@@ -78,16 +75,10 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         if not self.qs.isFinished():
             return
 
-        self.labelMessage.setText(WarnAlert.warn_message)
+        # self.labelMessage.setText(WarnAlert.warn_message)
         sound_file = WarnAlert.warn_file
-        self.qs = QSound(sound_file, parent=self.labelMessage)
+        self.qs = QSound(sound_file)
         self.qs.play()
-
-        for i in range(0, 1800, 600):
-            QTimer.singleShot((0.5 * i), lambda: self.labelMessage.setStyleSheet(
-                f"background-color: {WarnAlert.warn_color}; font-family:微軟正黑體; font-size:40pt;font-weight: bold;"))
-            QTimer.singleShot(
-                i, lambda: self.labelMessage.setStyleSheet(self.defaultStyleSheet))
 
     def setImg(self, frame, label):
 

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1206</width>
-    <height>806</height>
+    <width>1022</width>
+    <height>476</height>
    </rect>
   </property>
   <property name="palette">
@@ -352,10 +352,19 @@
        </widget>
       </item>
       <item row="0" column="4">
-       <widget class="QCheckBox" name="autoexp">
+       <widget class="QPushButton" name="autoexp">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>3</verstretch>
+         </sizepolicy>
+        </property>
         <property name="minimumSize">
          <size>
-          <width>130</width>
+          <width>150</width>
           <height>0</height>
          </size>
         </property>
@@ -367,14 +376,17 @@
         </property>
         <property name="font">
          <font>
+          <family>微軟正黑體</family>
           <pointsize>20</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="text">
          <string>自动曝光</string>
         </property>
-        <property name="checked">
-         <bool>true</bool>
+        <property name="autoRepeatDelay">
+         <number>300</number>
         </property>
        </widget>
       </item>
@@ -591,10 +603,19 @@
        </widget>
       </item>
       <item row="1" column="4">
-       <widget class="QCheckBox" name="autofocus">
+       <widget class="QPushButton" name="autofocus">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>3</verstretch>
+         </sizepolicy>
+        </property>
         <property name="minimumSize">
          <size>
-          <width>130</width>
+          <width>150</width>
           <height>0</height>
          </size>
         </property>
@@ -606,14 +627,17 @@
         </property>
         <property name="font">
          <font>
+          <family>微軟正黑體</family>
           <pointsize>20</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
         </property>
         <property name="text">
          <string>自动对焦</string>
         </property>
-        <property name="checked">
-         <bool>true</bool>
+        <property name="autoRepeatDelay">
+         <number>300</number>
         </property>
        </widget>
       </item>

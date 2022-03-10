@@ -4,8 +4,7 @@ from abc import ABC, abstractmethod
 
 import yaml
 from PyQt5.QtCore import pyqtSignal
-
-from factories import AlertFactory
+from cameraFunc import DetectScrawCamera
 
 with open('config.yml', 'r') as stream:
     config = yaml.load(stream, Loader=yaml.FullLoader)
@@ -26,23 +25,30 @@ class ICameraProcess(ABC):
 
 
 class BasicCameraProcess(ICameraProcess):
-    def __init__(self, command: mp.Value, camera, ImageSignal: pyqtSignal,
-                 Mxid, repeat_times, new_value, old_value, left_right, status, barcode) -> None:
+    def __init__(self, ImageSignal: pyqtSignal, AlertSignal: pyqtSignal, Mxid, new_value, status, barcode, command) -> None:
         super().__init__()
-        self.command = command
+        self.camera = DetectScrawCamera.run_Scraw_Camera
         self.ImageSignal = ImageSignal
-        self.repeat_times = repeat_times
+        self.AlertSignal = AlertSignal
+        self.old_value = {'lenPos_old': mp.Value('Q', 156), 'exp_time_old': mp.Value('Q', 20000),
+                          'sens_ios_old': mp.Value('Q', 800)}
+        self.new_value = new_value
+        self.status = status
         self.Mxid = Mxid
         self.queue = mp.Queue(4)
-        self.new_value = new_value
-        self.old_value = old_value
-        self.left_right = left_right
-        self.status = status
         self.barcode = barcode
-        self.proccess = mp.Process(target=camera, args=(
-            self.queue, self.command, self.Mxid, self.repeat_times, self.new_value, self.old_value, self.left_right, self.status, self.barcode))
+        self.result = mp.Queue(4)
+        self.alert = mp.Value('i', 99)
+        self.command = command
+        self.repeat_times = mp.Value('i', 0)
+
+        self.left_right = ''
 
     def runCamera(self):
+        self.command.value = 1
+        self.proccess = mp.Process(target=self.camera, args=(
+            self.queue, self.command, self.alert, self.Mxid, self.repeat_times, self.new_value, self.old_value,
+            self.left_right, self.status, self.barcode, self.result))
         self.proccess.start()
 
     def getFrame(self):
@@ -65,5 +71,24 @@ class BasicCameraProcess(ICameraProcess):
         # self.alert.value = 99
 
     def endCamera(self):
-        self.queue.close()
-        self.proccess.kill()
+        self.repeat_times.value = 0
+        self.command.value = 0
+        self.old_value = {'lenPos_old': mp.Value('Q', 156), 'exp_time_old': mp.Value('Q', 20000),
+                          'sens_ios_old': mp.Value('Q', 800)}
+        self.new_value = {'lenPos_new': mp.Value('Q', 156), 'exp_time_new': mp.Value('Q', 20000),
+                          'sens_ios_new': mp.Value('Q', 800)}
+        self.status = {'auto_exp_status': mp.Value('i', 1), 'auto_focus_status': mp.Value('i', 1)}
+        self.proccess.terminate()
+
+
+class LeftCameraProcess(BasicCameraProcess):
+    def __init__(self, ImageSignal: pyqtSignal, AlertSignal: pyqtSignal, Mxid, new_value, status, barcode, command) -> None:
+        super().__init__(ImageSignal, AlertSignal, Mxid, new_value, status, barcode, command)
+        self.left_right = 'left'
+
+
+class RightCameraProcess(BasicCameraProcess):
+    def __init__(self, ImageSignal: pyqtSignal, AlertSignal: pyqtSignal, Mxid, new_value, status, barcode, command) -> None:
+        super().__init__(ImageSignal, AlertSignal, Mxid, new_value, status, barcode, command)
+        self.left_right = 'right'
+
