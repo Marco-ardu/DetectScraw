@@ -5,7 +5,6 @@ from PyQt5.QtWidgets import QApplication
 from loguru import logger
 from View import ViewWindow
 from Worker import Worker
-from setDirection import isExist
 
 
 class MainController:
@@ -36,6 +35,7 @@ class MainController:
     def shutdown(self):
         self.view.Worker.stop()
         self.view.btnStart.setEnabled(True)
+        logger.info('quit app')
         self.view.app.quit()
 
     def getConfig(self):
@@ -67,18 +67,18 @@ class MainController:
 
     def change_checked_left(self):
         if self.view.leftCameraButton.isChecked():
+            logger.info('setting left camera')
             self.view.Worker.command.value = 1
         else:
+            logger.info('setting right camera')
             self.view.Worker.command.value = 2
 
     def barcode_edit(self):
         barcode = self.view.BarCodeValue.text().strip()
-        if len(barcode) != 0:
-            try:
-                self.view.Worker.barcode.put_nowait(barcode)
-                self.view.BarCodeValue.clear()
-            except queue.Full:
-                pass
+        if len(barcode) != 0 and not self.view.btnStart.isEnabled():
+            self.view.Worker.left_send_barcode.send(barcode)
+            self.view.Worker.right_send_barcode.send(barcode)
+            self.view.BarCodeValue.clear()
 
     def change_auto_exp(self):
         self.view.Worker.status['auto_exp_status'].value = 2

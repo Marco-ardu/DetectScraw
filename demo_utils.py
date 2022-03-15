@@ -118,6 +118,7 @@ def save_yml(config_camera):
         config['{}_camera_sens_ios'.format(direction)] = config_camera[2]
         config = yaml.dump(config)
         stream.write(config)
+        logger.info('save {} camera parameters'.format(direction))
 
 
 def play_sound(path):

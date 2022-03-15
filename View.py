@@ -7,8 +7,10 @@ from PyQt5.QtMultimedia import QSound
 from PyQt5.QtWidgets import (
     QMainWindow
 )
+from loguru import logger
 
-from ui.ui_main_new import Ui_MainWindow
+from factories.AlertFactory import AlertEnum, AlertDict
+from ui.ui_main import Ui_MainWindow
 
 with open('config.yml', 'r') as stream:
     config = yaml.load(stream, Loader=yaml.FullLoader)
@@ -26,6 +28,7 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
 
     def setup(self, controller):
         self.controller = controller
+        self.sound_dict = self.setSounddict()
         self.btnStart.clicked.connect(controller.btnStart_clicked)
         self.btnStop.clicked.connect(controller.btnStop_clicked)
         self.ShutDown.clicked.connect(controller.shutdown)
@@ -36,9 +39,16 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         self.leftCameraButton.toggled.connect(controller.change_checked_left)
         self.autoexp.clicked.connect(controller.change_auto_exp)
         self.autofocus.clicked.connect(controller.change_auto_focus)
-        self.qs = QSound('sound/welcome.wav')
-        if config["PRODUCTION"] is True:
-            self.qs.play()
+        # self.qs = QSound('sound/welcome.wav')
+        # self.qs.play()
+
+    def setSounddict(self):
+        sound_dict = {}
+        for key in AlertDict:
+            alert = AlertDict[key]
+            sound_dict[key] = QSound(alert.warn_file)
+
+        return sound_dict
 
     @pyqtSlot()
     def setDefaultView(self):
@@ -62,23 +72,26 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
     def keyPressEvent(self, event):
         self.BarCodeValue.setFocus()
         self.BarCodeValue.editingFinished.connect(self.controller.barcode_edit)
-        if event.key() == Qt.Key_Backspace:
-            text = self.BarCodeValue.text()
-            self.BarCodeValue.setText(text[:-1])
-        elif event.key() == Qt.Key_Delete:
-            self.BarCodeValue.clear()
-        else:
-            text = self.BarCodeValue.text()
-            self.BarCodeValue.setText(text + event.text())
+        # print(event.key(), Qt.Key_Delete)
+        # if event.key() == Qt.Key_Backspace:
+        #     text = self.BarCodeValue.text()
+        #     self.BarCodeValue.setText(text[:-1])
+        # elif event.key() == Qt.Key_Delete:
+        #     self.BarCodeValue.clear()
+        # else:
+        #     text = self.BarCodeValue.text()
+        #     self.BarCodeValue.setText(text + event.text())
 
-    def runAlert(self, WarnAlert):
-        if not self.qs.isFinished():
-            return
-
-        # self.labelMessage.setText(WarnAlert.warn_message)
-        sound_file = WarnAlert.warn_file
-        self.qs = QSound(sound_file)
-        self.qs.play()
+    @pyqtSlot(AlertEnum)
+    def runAlert(self, alertKey):
+        for key in self.sound_dict:
+            if not self.sound_dict[key].isFinished():
+                return
+        WarnAlert = AlertDict[alertKey]
+        logger.info(alertKey)
+        logger.info(WarnAlert.warn_file)
+        current_sound = self.sound_dict[alertKey]
+        current_sound.play()
 
     def setImg(self, frame, label):
 

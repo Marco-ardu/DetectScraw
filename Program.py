@@ -10,7 +10,7 @@ from demo_utils import setLogPath
 
 if __name__ == "__main__":
     setLogPath()
-    logger.info('start')
+    logger.info('start app')
     mp.freeze_support()
     app = QApplication(sys.argv)
     c = MainController(ViewWindow())

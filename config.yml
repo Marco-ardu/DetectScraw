@@ -5,7 +5,7 @@ left_camera_exp_time: 20000
 left_camera_lensPos: 156
 left_camera_mxid: 14442C1031CD62D300
 left_camera_sens_ios: 800
-max_count: 20
+max_count: 10
 resolution: 720
 right_camera_exp_time: 20000
 right_camera_lensPos: 156

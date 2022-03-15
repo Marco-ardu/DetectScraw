@@ -37,13 +37,13 @@ with open('config.yml', 'r') as stream:
     args = yaml.load(stream, Loader=yaml.FullLoader)
 
 
-def run_Scraw_Camera(frame_queue, command, alert, device_mxid, repeat_times, new_value, old_value, left_right, status,
+def run_Scraw_Camera(frame_queue, command, alert, device_mxid, repeat_times, new_value, old_value, direction, status,
                      barcode, result):
     setLogPath()
     frames_qualified = ({})
     max_count = args['max_count']
     Barcode = None
-    logger.info('start {} camera'.format(left_right))
+    logger.info('start {} camera'.format(direction))
     show_frame = None
     pipeline = dai.Pipeline()  # type: dai.Pipeline
     resolution = rgb_resolutions[args['resolution']]
@@ -82,9 +82,9 @@ def run_Scraw_Camera(frame_queue, command, alert, device_mxid, repeat_times, new
         device = dai.Device(pipeline, device_info, True)
         mxid = device.getMxId()
         usb_speed = device.getUsbSpeed()
-        print("   >>> MXID:", mxid)
         names_list = {'SUPER': 'USB3.0', 'HIGH': 'USB2.0'}
-        print("   >>> USB speed:", names_list.get(usb_speed.name))
+        logger.info("MXID: {}".format(mxid))
+        logger.info("USB speed: {}".format(names_list.get(usb_speed.name)))
         cam_out = device.getOutputQueue("cam_out", 1, True)
         yolox_det_nn = device.getOutputQueue("yolox_det_nn", 30, False)
         controlQueue = device.getInputQueue("control")
@@ -92,7 +92,7 @@ def run_Scraw_Camera(frame_queue, command, alert, device_mxid, repeat_times, new
         ctrl.setManualFocus(new_value['lenPos_new'].value)
         ctrl.setManualExposure(new_value['exp_time_new'].value, new_value['sens_ios_new'].value)
         controlQueue.send(ctrl)
-        flag = '1' if left_right == 'left' else '2'
+        flag = '1' if direction == 'left' else '2'
         while command.value != 0:
             in_rgb = cam_out.get()
             if in_rgb is not None:
@@ -117,20 +117,20 @@ def run_Scraw_Camera(frame_queue, command, alert, device_mxid, repeat_times, new
                 dets = multiclass_nms(boxes_xyxy, scores, nms_thr=0.2, score_thr=0.2)
                 if command.value == eval(flag):
                     if status['auto_focus_status'].value == 2:
-                        logger.info('{} Camera Autoexposure enable'.format(left_right))
+                        logger.info('{} Camera Autoexposure enable'.format(direction))
                         ctrl = dai.CameraControl()
                         ctrl.setAutoFocusMode(dai.CameraControl.AutoFocusMode.CONTINUOUS_VIDEO)
                         controlQueue.send(ctrl)
                         status['auto_focus_status'].value = 1
                     if status['auto_exp_status'].value == 2:
-                        logger.info('{} Camera Autofocus enable, continuous'.format(left_right))
+                        logger.info('{} Camera Autofocus enable, continuous'.format(direction))
                         ctrl = dai.CameraControl()
                         ctrl.setAutoExposureEnable()
                         controlQueue.send(ctrl)
                         status['auto_exp_status'].value = 1
                     if new_value['lenPos_new'].value != old_value['lenPos_old'].value \
                             and status['auto_focus_status'].value != 2:
-                        logger.info('set {} Camera lenPos: {}'.format(left_right, new_value['lenPos_new'].value))
+                        logger.info('set {} Camera lenPos: {}'.format(direction, new_value['lenPos_new'].value))
                         ctrl = dai.CameraControl()
                         ctrl.setManualFocus(new_value['lenPos_new'].value)
                         old_value['lenPos_old'].value = new_value['lenPos_new'].value
@@ -138,7 +138,7 @@ def run_Scraw_Camera(frame_queue, command, alert, device_mxid, repeat_times, new
                     if new_value['exp_time_new'].value != old_value['exp_time_old'].value \
                             or new_value['sens_ios_new'].value != old_value['sens_ios_old'].value \
                             and status['auto_exp_status'].value != 2:
-                        logger.info('set {} Camera exp_time: {}， sens_ios: {}'.format(left_right,
+                        logger.info('set {} Camera exp_time: {}， sens_ios: {}'.format(direction,
                                                                                       new_value['exp_time_new'].value,
                                                                                       new_value['sens_ios_new'].value))
                         ctrl = dai.CameraControl()
@@ -147,6 +147,7 @@ def run_Scraw_Camera(frame_queue, command, alert, device_mxid, repeat_times, new
                         old_value['sens_ios_old'].value = new_value['sens_ios_new'].value
                         controlQueue.send(ctrl)
                 try:
+                    no_screw, screw = [], []
                     if dets is not None:
                         final_boxes = dets[:, :4]
                         final_scores, final_cls_inds = dets[:, 4], dets[:, 5]
@@ -160,28 +161,32 @@ def run_Scraw_Camera(frame_queue, command, alert, device_mxid, repeat_times, new
                             conf=args['confidence_threshold'],
                             class_names=CLASSES,
                         )
-                        if not barcode.empty():
-                            max_count = 20
-                            Barcode = barcode.get_nowait()
-                            print(Barcode)
-                            frames_qualified.setdefault(Barcode, {}).setdefault(left_right, {"res": [],
-                                                                                             "count": []})
-                        if max_count != 0 and Barcode is not None:
-                            frames_qualified[Barcode][left_right]['res'].append(len(no_screw) == 0 and len(screw) == 3)
-                            frames_qualified[Barcode][left_right]['count'].append(len(no_screw) + len(screw))
-                            max_count -= 1
-                        elif max_count == 0 and Barcode is not None:
-                            result.put_nowait(frames_qualified)
-                            print(result.get_nowait())
-                            Barcode = None
+                    if barcode.poll():
+                        max_count = args['max_count']
+                        Barcode = barcode.recv()
+                        logger.info('{} camera get Barcode: {}'.format(direction, Barcode))
+                        frames_qualified.setdefault("res", [])
+                        frames_qualified.setdefault("count", [])
+                    if max_count != 0 and Barcode is not None:
+                        frames_qualified['res'].append(len(no_screw) == 0 and len(screw) == 3)
+                        frames_qualified['count'].append(len(no_screw) + len(screw))
+                        max_count -= 1
+                    elif max_count == 0 and Barcode is not None:
+                        result.send(frames_qualified)
+                        logger.info('send {} camera result of detections to front'.format(direction))
+                        frames_qualified = {}
+                        max_count = args['max_count']
+                        Barcode = None
                     frame_queue.put_nowait(show_frame)
                 except queue.Full:
                     pass
     except Exception as e:
-        print(traceback.print_exc())
-        if repeat_times != 10:
+        logger.error(e)
+        if repeat_times.value < 10:
             repeat_times.value += 1
-            run_Scraw_Camera(frame_queue, command, alert, device_mxid, repeat_times, new_value, old_value, left_right,
+            logger.info('try start {} camera {} time'.format(direction, repeat_times.value))
+            run_Scraw_Camera(frame_queue, command, alert, device_mxid, repeat_times, new_value, old_value, direction,
                              status,
                              barcode, result)
-        logger.error(f"Device {device_mxid} not found!\n" + str(e))
+        logger.error(f"Device {device_mxid} not found!")
+        raise RuntimeError(f"Device {device_mxid} not found!")
