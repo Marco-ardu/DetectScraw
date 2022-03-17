@@ -3,11 +3,11 @@ confidence_threshold: 0.5
 frame_number: 50
 left_camera_exp_time: 20000
 left_camera_lensPos: 156
-left_camera_mxid: 14442C1031CD62D300
+left_camera_mxid: 14442C1011532DD700
 left_camera_sens_ios: 800
 max_count: 10
-resolution: 720
+resolution: 800
 right_camera_exp_time: 20000
 right_camera_lensPos: 156
-right_camera_mxid: '184430109169051300'
+right_camera_mxid: 14442C10B17156D700
 right_camera_sens_ios: 800

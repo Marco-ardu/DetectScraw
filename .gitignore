@@ -3,4 +3,7 @@ carEnv
 .fake
 .ionide
 .idea
+images
+logs.txt
+__pycache__
 

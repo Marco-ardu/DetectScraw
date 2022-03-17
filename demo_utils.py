@@ -7,6 +7,7 @@ import platform
 import subprocess
 import sys
 import threading
+from datetime import datetime
 from pathlib import Path
 
 import cv2
@@ -24,6 +25,25 @@ from loguru import logger
 def mkdir(path):
     if not os.path.exists(path):
         os.makedirs(path)
+
+
+whether_dict = {True: 'PASS', False: 'NG'}
+
+
+def save_to_picture(whether, image, numbering):
+    time_res = datetime.now().strftime("%Y%m%d_%H%M%S")
+    parent_dir = Path("images")
+    parent_dir.mkdir(exist_ok=True)
+    name = parent_dir / f"{time_res}_{numbering}"
+    exist_files = list(parent_dir.glob(f"*_{numbering}_No*.png"))
+    if exist_files:
+        latest_file = max(exist_files, key=os.path.getctime).stem.split("No")[-1].split("_")[0]
+        print(latest_file)
+        logger.info('save picture {} time'.format(int(latest_file) + 1))
+        cv2.imwrite(f"{name}_No{int(latest_file) + 1:0>2d}_{whether_dict[whether]}.png", image)
+    else:
+        logger.info('save picture first time')
+        cv2.imwrite(f"{name}_No01_{whether_dict[whether]}.png", image)
 
 
 def nms(boxes, scores, nms_thr):

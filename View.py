@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import yaml
-from PyQt5.QtCore import QTimer, Qt, pyqtSlot
+from PyQt5.QtCore import Qt, pyqtSlot
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtMultimedia import QSound
 from PyQt5.QtWidgets import (
@@ -72,15 +72,6 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
     def keyPressEvent(self, event):
         self.BarCodeValue.setFocus()
         self.BarCodeValue.editingFinished.connect(self.controller.barcode_edit)
-        # print(event.key(), Qt.Key_Delete)
-        # if event.key() == Qt.Key_Backspace:
-        #     text = self.BarCodeValue.text()
-        #     self.BarCodeValue.setText(text[:-1])
-        # elif event.key() == Qt.Key_Delete:
-        #     self.BarCodeValue.clear()
-        # else:
-        #     text = self.BarCodeValue.text()
-        #     self.BarCodeValue.setText(text + event.text())
 
     @pyqtSlot(AlertEnum)
     def runAlert(self, alertKey):
@@ -99,9 +90,8 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         Pic = QImage(Image.data, Image.shape[1],
                      Image.shape[0], QImage.Format_RGB888)
 
-        if config["PRODUCTION"] is not True:
-            h, w = label.size().height(), label.size().width()
-            Pic = Pic.scaled(w, h, Qt.KeepAspectRatio)
+        h, w = label.size().height(), label.size().width()
+        Pic = Pic.scaled(w, h, Qt.KeepAspectRatio)
 
         # 如果有需要再獨立 目前先放在這一併執行
         label.setPixmap(QPixmap.fromImage(Pic))

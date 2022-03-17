@@ -2,13 +2,13 @@ import multiprocessing as mp
 import time
 import traceback
 
-import keyboard
+import cv2
 import numpy
 from PyQt5.QtCore import QThread, pyqtSignal
 from loguru import logger
-from demo_utils import save_yml
+
+from demo_utils import save_yml, save_to_picture
 from factories.AlertFactory import AlertEnum
-from model.AlertModel import WarnAlert
 from model.ProccessModel import LeftCameraProcess, RightCameraProcess
 from setDirection import isExist
 
@@ -33,41 +33,55 @@ class Worker(QThread):
         self.right_send_barcode, self.right_recv_barcode = mp.Pipe()
         self.Mxid = isExist
         self.save_yml = save_yml
+        self.ThreadActive = True
+        self.leftActive = False
+        self.rightActive = False
+        self.bar_code = ''
+        self.save_left_frame = ''
+        self.save_right_frame = ''
 
     def run(self):
         logger.info('loading camera')
-        time.sleep(4)
+        time.sleep(5)
         self.Mxids = self.Mxid()
         try:
             LeftCamera = LeftCameraProcess(self.FrontImage, self.Alert, self.Mxids[0], self.new_value, self.status,
-                                           self.left_recv_barcode, self.command,  self.left_location, self.left_isQualified, self.right_location,self.right_isQualified)
+                                           self.left_recv_barcode, self.command, self.left_location,
+                                           self.left_isQualified, self.right_location, self.right_isQualified)
             RightCamera = RightCameraProcess(self.RearImage, self.Alert, self.Mxids[1], self.new_value, self.status,
-                                             self.right_recv_barcode, self.command, self.left_location, self.left_isQualified, self.right_location,self.right_isQualified)
+                                             self.right_recv_barcode, self.command, self.left_location,
+                                             self.left_isQualified, self.right_location, self.right_isQualified)
             Cameras = [LeftCamera, RightCamera]
 
             for Camera in Cameras:
                 Camera.runCamera()
 
-            self.ThreadActive = True
-            self.leftActive = False
-            self.rightActive = False
-
             while self.ThreadActive:
-                # for Camera in Cameras:
                 if LeftCamera.recv_result.poll():
+                    logger.info('left poll')
                     self.leftActive = True
                     LeftCamera.parse_left_result()
-                LeftCamera.getFrame()
+                left_frame = LeftCamera.getFrame()
+                if left_frame is not None:
+                    self.save_left_frame = left_frame
                 LeftCamera.getAlert()
                 if RightCamera.recv_result.poll():
+                    logger.info('right poll')
                     self.rightActive = True
                     RightCamera.parse_right_result()
-                RightCamera.getFrame()
+                right_frame = RightCamera.getFrame()
+                if right_frame is not None:
+                    self.save_right_frame = right_frame
                 RightCamera.getAlert()
                 if self.leftActive and self.rightActive:
                     self.leftActive = False
                     self.rightActive = False
                     RightCamera.setAlert()
+                    if self.left_location.value == 1 and self.right_location.value == 1:
+                        save_to_picture(self.left_isQualified.value == 1 and self.right_isQualified.value == 1,
+                                        cv2.hconcat([self.save_left_frame, self.save_right_frame]),
+                                        numbering=self.bar_code
+                                        )
 
             for Camera in Cameras:
                 Camera.endCamera()

@@ -1,5 +1,6 @@
 import multiprocessing as mp
 import queue
+import traceback
 from abc import ABC, abstractmethod
 
 import yaml
@@ -42,6 +43,7 @@ class BasicCameraProcess(ICameraProcess):
         self.barcode = barcode
         self.command = command
         self.queue = mp.Queue(4)
+        # self.save_frame = None
         self.send_result, self.recv_result = mp.Pipe()
         self.alert = mp.Value('i', 99)
         self.repeat_times = mp.Value('i', 0)
@@ -69,7 +71,6 @@ class BasicCameraProcess(ICameraProcess):
     def getAlert(self):
         if self.alert.value == int(AlertEnum.NoAlert):
             return
-
         self.AlertSignal.emit(AlertEnum(self.alert.value))
         self.alert.value = int(AlertEnum.NoAlert)
 
@@ -83,9 +84,6 @@ class BasicCameraProcess(ICameraProcess):
         self.status = {'auto_exp_status': mp.Value('i', 1), 'auto_focus_status': mp.Value('i', 1)}
         logger.info('stop {} camera'.format(self.direction))
         self.proccess.terminate()
-
-    def parse_result(self):
-        pass
 
     def setAlert(self):
         logger.info('{} {} {} {}'.format(self.left_location.value, self.right_location.value, self.left_isQualified.value, self.right_isQualified.value))
@@ -121,12 +119,15 @@ class LeftCameraProcess(BasicCameraProcess):
         left_pass = left_location and left_res[left_count.index(3)]
         if left_location:
             self.left_location.value = 1
+            if left_pass:
+                # self.left_send_save_frame.send(self.save_frame)
+                self.left_isQualified.value = 1
+            else:
+                # self.left_send_save_frame.send(self.save_frame)
+                self.left_isQualified.value = 2
         else:
             self.left_location.value = 2
-        if left_pass:
-            self.left_isQualified.value = 1
-        else:
-            self.left_isQualified.value = 2
+
         logger.info(
             '{} {} {} {}'.format(self.left_location.value, self.right_location.value, self.left_isQualified.value,
                                  self.right_isQualified.value))
@@ -145,13 +146,14 @@ class RightCameraProcess(BasicCameraProcess):
         right_res = result['res']
         right_location = 3 in right_count
         right_pass = right_location and right_res[right_count.index(3)]
-
         if right_location:
             self.right_location.value = 1
+            if right_pass:
+                # self.right_send_save_frame.send(self.save_frame)
+                self.right_isQualified.value = 1
+            else:
+                # self.right_send_save_frame.send(self.save_frame)
+                self.right_isQualified.value = 2
         else:
             self.right_location.value = 2
-        if right_pass:
-            self.right_isQualified.value = 1
-        else:
-            self.right_isQualified.value = 2
         logger.info('{} {} {} {}'.format(self.left_location.value, self.right_location.value, self.left_isQualified.value, self.right_isQualified.value))

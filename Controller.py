@@ -1,8 +1,6 @@
-import queue
-import time
-
 from PyQt5.QtWidgets import QApplication
 from loguru import logger
+
 from View import ViewWindow
 from Worker import Worker
 
@@ -78,6 +76,7 @@ class MainController:
         if len(barcode) != 0 and not self.view.btnStart.isEnabled():
             self.view.Worker.left_send_barcode.send(barcode)
             self.view.Worker.right_send_barcode.send(barcode)
+            self.view.Worker.bar_code = barcode
             self.view.BarCodeValue.clear()
 
     def change_auto_exp(self):

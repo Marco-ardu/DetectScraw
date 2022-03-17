@@ -9,7 +9,7 @@ import yaml
 from depthai_sdk import toTensorResult
 from loguru import logger
 
-from demo_utils import getNNPath, setLogPath, multiclass_nms, demo_postprocess
+from demo_utils import getNNPath, setLogPath, multiclass_nms, demo_postprocess, cv2AddChineseText
 from visualize import vis
 
 CLASSES = [
@@ -43,8 +43,10 @@ def run_Scraw_Camera(frame_queue, command, alert, device_mxid, repeat_times, new
     frames_qualified = ({})
     max_count = args['max_count']
     Barcode = None
+    show_barcode = None
     logger.info('start {} camera'.format(direction))
     show_frame = None
+    show_max_frame = 0
     pipeline = dai.Pipeline()  # type: dai.Pipeline
     resolution = rgb_resolutions[args['resolution']]
 
@@ -177,11 +179,24 @@ def run_Scraw_Camera(frame_queue, command, alert, device_mxid, repeat_times, new
                         frames_qualified = {}
                         max_count = args['max_count']
                         Barcode = None
+
+                    if Barcode is not None:
+                        show_barcode = Barcode
+                        show_max_frame = args['frame_number']
+                    if show_max_frame > 0:
+                        show_frame = cv2AddChineseText(
+                            show_frame,
+                            f"条形玛: {show_barcode}",
+                            (500, 70),
+                            (0, 255, 0),
+                            50,
+                        )
+                        show_max_frame -= 1
                     frame_queue.put_nowait(show_frame)
                 except queue.Full:
                     pass
     except Exception as e:
-        logger.error(e)
+        logger.error(traceback.print_exc())
         if repeat_times.value < 10:
             repeat_times.value += 1
             logger.info('try start {} camera {} time'.format(direction, repeat_times.value))

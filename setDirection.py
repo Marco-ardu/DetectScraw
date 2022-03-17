@@ -20,4 +20,3 @@ def isExist():
         else:
             return [args['left_camera_mxid'], args['right_camera_mxid']]
 
-
