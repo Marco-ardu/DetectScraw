@@ -10,7 +10,7 @@ from loguru import logger
 from demo_utils import save_yml, save_to_picture
 from factories.AlertFactory import AlertEnum
 from model.ProccessModel import LeftCameraProcess, RightCameraProcess
-from setDirection import isExist
+from demo_utils import isExist
 
 
 class Worker(QThread):
@@ -41,8 +41,9 @@ class Worker(QThread):
         self.save_right_frame = ''
 
     def run(self):
+        self.ThreadActive = True
         logger.info('loading camera')
-        time.sleep(5)
+        time.sleep(6)
         self.Mxids = self.Mxid()
         try:
             LeftCamera = LeftCameraProcess(self.FrontImage, self.Alert, self.Mxids[0], self.new_value, self.status,
@@ -87,8 +88,9 @@ class Worker(QThread):
                 Camera.endCamera()
 
             self.quit()
-        except Exception:
-            logger.error(traceback.print_exc())
+        except Exception as e:
+            print(traceback.print_exc())
+            logger.error(e)
 
     def stop(self):
         self.ThreadActive = False

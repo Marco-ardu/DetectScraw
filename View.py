@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import yaml
-from PyQt5.QtCore import Qt, pyqtSlot
+from PyQt5.QtCore import Qt, pyqtSlot, QTimer
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtMultimedia import QSound
 from PyQt5.QtWidgets import (
@@ -20,8 +20,10 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
+        self.defaultStyleSheet = "background-color: black; font-family:微軟正黑體; font-size:40pt;font-weight: bold; color:white"
         self.defaultFrontLabelText = "左相机"
         self.defaultRearLabelText = "右相机"
+        self.defaultRemindLabelText = "消息提醒"
         self.defaultSettingLensPos_value = 156
         self.defaultSettingExp_time_value = 20000
         self.defaultSettingSens_ios_value = 800
@@ -39,15 +41,14 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         self.leftCameraButton.toggled.connect(controller.change_checked_left)
         self.autoexp.clicked.connect(controller.change_auto_exp)
         self.autofocus.clicked.connect(controller.change_auto_focus)
-        # self.qs = QSound('sound/welcome.wav')
-        # self.qs.play()
+        self.qs = QSound('sound/welcome.wav')
+        self.qs.play()
 
     def setSounddict(self):
         sound_dict = {}
         for key in AlertDict:
             alert = AlertDict[key]
             sound_dict[key] = QSound(alert.warn_file)
-
         return sound_dict
 
     @pyqtSlot()
@@ -59,6 +60,7 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         self.sens_ios_value.setValue(self.defaultSettingSens_ios_value)
         self.LabelFront.setText(self.defaultFrontLabelText)
         self.LabelRear.setText(self.defaultRearLabelText)
+        self.remind.setText(self.defaultRemindLabelText)
         self.leftCameraButton.setChecked(True)
 
     @pyqtSlot(np.ndarray)
@@ -83,15 +85,16 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         logger.info(WarnAlert.warn_file)
         current_sound = self.sound_dict[alertKey]
         current_sound.play()
+        self.remind.setText(WarnAlert.warn_message)
+        for i in range(0, 2400, 600):
+            QTimer.singleShot((0.5 * i), lambda: self.remind.setStyleSheet(self.defaultStyleSheet.replace("black", WarnAlert.warn_color)))
+            QTimer.singleShot(i, lambda: self.remind.setStyleSheet(self.defaultStyleSheet))
+
 
     def setImg(self, frame, label):
-
         Image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         Pic = QImage(Image.data, Image.shape[1],
                      Image.shape[0], QImage.Format_RGB888)
-
         h, w = label.size().height(), label.size().width()
         Pic = Pic.scaled(w, h, Qt.KeepAspectRatio)
-
-        # 如果有需要再獨立 目前先放在這一併執行
         label.setPixmap(QPixmap.fromImage(Pic))

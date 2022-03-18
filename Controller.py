@@ -1,9 +1,9 @@
+import time
 from PyQt5.QtWidgets import QApplication
 from loguru import logger
 
 from View import ViewWindow
 from Worker import Worker
-
 
 class MainController:
     def __init__(self, view: ViewWindow) -> None:
@@ -11,7 +11,7 @@ class MainController:
 
     def start(self):
         self.view.setup(self)
-        self.view.show()
+        self.view.show() 
         # self.view.showFullScreen()
         self.view.app = QApplication.instance()  # 实例化APP，获取app的指针
         self.view.Worker = Worker()

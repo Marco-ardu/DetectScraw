@@ -5,5 +5,7 @@ carEnv
 .idea
 images
 logs.txt
+logs.zip
+test.py
 __pycache__
-
+venv

@@ -1,4 +1,5 @@
 import queue
+import time
 import traceback
 from pathlib import Path
 
@@ -49,6 +50,9 @@ def run_Scraw_Camera(frame_queue, command, alert, device_mxid, repeat_times, new
     show_max_frame = 0
     pipeline = dai.Pipeline()  # type: dai.Pipeline
     resolution = rgb_resolutions[args['resolution']]
+    new_value['lenPos_new'].value = args['{}_camera_lensPos'.format(direction)]
+    new_value['exp_time_new'].value = args['{}_camera_exp_time'.format(direction)]
+    new_value['sens_ios_new'].value = args['{}_camera_sens_ios'.format(direction)]
 
     # ColorCamera
     cam = pipeline.createColorCamera()  # type: dai.node.ColorCamera
@@ -186,9 +190,9 @@ def run_Scraw_Camera(frame_queue, command, alert, device_mxid, repeat_times, new
                     if show_max_frame > 0:
                         show_frame = cv2AddChineseText(
                             show_frame,
-                            f"条形玛: {show_barcode}",
-                            (500, 70),
-                            (0, 255, 0),
+                            f"Barcode: {show_barcode}",
+                            (450, 70),
+                            (0, 0, 255),
                             50,
                         )
                         show_max_frame -= 1
@@ -196,12 +200,12 @@ def run_Scraw_Camera(frame_queue, command, alert, device_mxid, repeat_times, new
                 except queue.Full:
                     pass
     except Exception as e:
-        logger.error(traceback.print_exc())
         if repeat_times.value < 10:
+            time.sleep(2)
+            logger.info(e)
             repeat_times.value += 1
             logger.info('try start {} camera {} time'.format(direction, repeat_times.value))
             run_Scraw_Camera(frame_queue, command, alert, device_mxid, repeat_times, new_value, old_value, direction,
-                             status,
-                             barcode, result)
+                             status, barcode, result)
         logger.error(f"Device {device_mxid} not found!")
         raise RuntimeError(f"Device {device_mxid} not found!")

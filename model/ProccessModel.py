@@ -43,7 +43,6 @@ class BasicCameraProcess(ICameraProcess):
         self.barcode = barcode
         self.command = command
         self.queue = mp.Queue(4)
-        # self.save_frame = None
         self.send_result, self.recv_result = mp.Pipe()
         self.alert = mp.Value('i', 99)
         self.repeat_times = mp.Value('i', 0)
