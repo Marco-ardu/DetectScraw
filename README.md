@@ -1,4 +1,5 @@
 # DetectScraw
+## .ui->.py
 ```shell
 pyuic5 ui/main.ui -o ui/ui_main.py
 ```
