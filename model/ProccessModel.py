@@ -119,10 +119,8 @@ class LeftCameraProcess(BasicCameraProcess):
         if left_location:
             self.left_location.value = 1
             if left_pass:
-                # self.left_send_save_frame.send(self.save_frame)
                 self.left_isQualified.value = 1
             else:
-                # self.left_send_save_frame.send(self.save_frame)
                 self.left_isQualified.value = 2
         else:
             self.left_location.value = 2
@@ -148,10 +146,8 @@ class RightCameraProcess(BasicCameraProcess):
         if right_location:
             self.right_location.value = 1
             if right_pass:
-                # self.right_send_save_frame.send(self.save_frame)
                 self.right_isQualified.value = 1
             else:
-                # self.right_send_save_frame.send(self.save_frame)
                 self.right_isQualified.value = 2
         else:
             self.right_location.value = 2

@@ -219,17 +219,17 @@ def save_yml(config_camera):
     with open('config.yml', 'r') as stream:
         config = yaml.load(stream, Loader=yaml.FullLoader)
     with open('config.yml', 'w') as stream:
-        direction = 'left' if config_camera[3] else 'right'
-        if config_camera[3]:
-            config['{}_camera_mxid'.format(direction)] = config_camera[5][0]
-        else:
-            config['{}_camera_mxid'.format(direction)] = config_camera[5][1]
-        config['{}_camera_lensPos'.format(direction)] = config_camera[0]
-        config['{}_camera_exp_time'.format(direction)] = config_camera[1]
-        config['{}_camera_sens_ios'.format(direction)] = config_camera[2]
+        config['left_camera_mxid'] = config_camera[6][0]
+        config['right_camera_mxid'] = config_camera[6][1]
+        config['left_camera_lensPos'] = config_camera[0]
+        config['left_camera_exp_time'] = config_camera[1]
+        config['left_camera_sens_ios'] = config_camera[2]
+        config['right_camera_lensPos'] = config_camera[3]
+        config['right_camera_exp_time'] = config_camera[4]
+        config['right_camera_sens_ios'] = config_camera[5]
         config = yaml.dump(config)
         stream.write(config)
-        logger.info('save {} camera parameters'.format(direction))
+        logger.info('save camera parameters')
 
 
 def play_sound(path):

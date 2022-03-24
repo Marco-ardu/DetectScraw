@@ -1,3 +1,4 @@
+from pickle import TRUE
 import queue
 import time
 import traceback
@@ -98,7 +99,6 @@ def run_Scraw_Camera(frame_queue, command, alert, device_mxid, repeat_times, new
         ctrl.setManualFocus(new_value['lenPos_new'].value)
         ctrl.setManualExposure(new_value['exp_time_new'].value, new_value['sens_ios_new'].value)
         controlQueue.send(ctrl)
-        flag = '1' if direction == 'left' else '2'
         while command.value != 0:
             in_rgb = cam_out.get()
             if in_rgb is not None:
@@ -121,37 +121,52 @@ def run_Scraw_Camera(frame_queue, command, alert, device_mxid, repeat_times, new
                 offset = np.ravel([offset, offset])
                 boxes_xyxy = (boxes_xyxy + offset[::-1]) / min_r
                 dets = multiclass_nms(boxes_xyxy, scores, nms_thr=0.2, score_thr=0.2)
-                if command.value == eval(flag):
-                    if status['auto_focus_status'].value == 2:
-                        logger.info('{} Camera Autoexposure enable'.format(direction))
-                        ctrl = dai.CameraControl()
-                        ctrl.setAutoFocusMode(dai.CameraControl.AutoFocusMode.CONTINUOUS_VIDEO)
-                        controlQueue.send(ctrl)
-                        status['auto_focus_status'].value = 1
-                    if status['auto_exp_status'].value == 2:
-                        logger.info('{} Camera Autofocus enable, continuous'.format(direction))
-                        ctrl = dai.CameraControl()
-                        ctrl.setAutoExposureEnable()
-                        controlQueue.send(ctrl)
-                        status['auto_exp_status'].value = 1
-                    if new_value['lenPos_new'].value != old_value['lenPos_old'].value \
-                            and status['auto_focus_status'].value != 2:
-                        logger.info('set {} Camera lenPos: {}'.format(direction, new_value['lenPos_new'].value))
-                        ctrl = dai.CameraControl()
-                        ctrl.setManualFocus(new_value['lenPos_new'].value)
-                        old_value['lenPos_old'].value = new_value['lenPos_new'].value
-                        controlQueue.send(ctrl)
-                    if new_value['exp_time_new'].value != old_value['exp_time_old'].value \
-                            or new_value['sens_ios_new'].value != old_value['sens_ios_old'].value \
-                            and status['auto_exp_status'].value != 2:
-                        logger.info('set {} Camera exp_time: {}， sens_ios: {}'.format(direction,
-                                                                                      new_value['exp_time_new'].value,
-                                                                                      new_value['sens_ios_new'].value))
-                        ctrl = dai.CameraControl()
-                        ctrl.setManualExposure(new_value['exp_time_new'].value, new_value['sens_ios_new'].value)
-                        old_value['exp_time_old'].value = new_value['exp_time_new'].value
-                        old_value['sens_ios_old'].value = new_value['sens_ios_new'].value
-                        controlQueue.send(ctrl)
+                if status['auto_focus_status'].value == 2:
+                    logger.info('{} Camera ON Autofocus enable, continuous'.format(direction))
+                    ctrl = dai.CameraControl()
+                    ctrl.setAutoFocusMode(dai.CameraControl.AutoFocusMode.CONTINUOUS_VIDEO)
+                    controlQueue.send(ctrl)
+                    status['auto_focus_status'].value = 0
+
+                if status['auto_exp_status'].value == 2:
+                    logger.info('{} Camera ON Autoexposure enable'.format(direction))
+                    ctrl = dai.CameraControl()
+                    ctrl.setAutoExposureEnable()
+                    controlQueue.send(ctrl)
+                    status['auto_exp_status'].value = 0
+
+                if status['auto_focus_status'].value == 1:
+                    logger.info('{}Camera OFF Autofocus enable, continuous'.format(direction))
+                    ctrl = dai.CameraControl()
+                    ctrl.setAutoFocusMode(dai.CameraControl.AutoFocusMode.OFF)
+                    controlQueue.send(ctrl)
+                    status['auto_focus_status'].value = 0
+
+                if status['auto_exp_status'].value == 1:
+                    logger.info('{} Camera OFF Autoexposure enable'.format(direction))
+                    ctrl = dai.CameraControl()
+                    ctrl.setAutoExposureLock(True)
+                    controlQueue.send(ctrl)
+                    status['auto_exp_status'].value = 0
+
+                if new_value['lenPos_new'].value != old_value['lenPos_old'].value \
+                        and status['auto_focus_status'].value != 2:
+                    logger.info('set {} Camera lenPos: {}'.format(direction, new_value['lenPos_new'].value))
+                    ctrl = dai.CameraControl()
+                    ctrl.setManualFocus(new_value['lenPos_new'].value)
+                    old_value['lenPos_old'].value = new_value['lenPos_new'].value
+                    controlQueue.send(ctrl)
+                if new_value['exp_time_new'].value != old_value['exp_time_old'].value \
+                        or new_value['sens_ios_new'].value != old_value['sens_ios_old'].value \
+                        and status['auto_exp_status'].value != 2:
+                    logger.info('set {} Camera exp_time: {}， sens_ios: {}'.format(direction,
+                                                                                    new_value['exp_time_new'].value,
+                                                                                    new_value['sens_ios_new'].value))
+                    ctrl = dai.CameraControl()
+                    ctrl.setManualExposure(new_value['exp_time_new'].value, new_value['sens_ios_new'].value)
+                    old_value['exp_time_old'].value = new_value['exp_time_new'].value
+                    old_value['sens_ios_old'].value = new_value['sens_ios_new'].value
+                    controlQueue.send(ctrl)
                 try:
                     no_screw, screw = [], []
                     if dets is not None:

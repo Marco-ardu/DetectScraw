@@ -1,3 +1,4 @@
+import time
 import cv2
 import numpy as np
 import yaml
@@ -35,14 +36,19 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         self.btnStop.clicked.connect(controller.btnStop_clicked)
         self.ShutDown.clicked.connect(controller.shutdown)
         self.SaveButton.clicked.connect(controller.btn_save)
-        self.lensPos_value.valueChanged.connect(controller.change_lenPos)
-        self.exp_time_value.valueChanged.connect(controller.change_exp_time)
-        self.sens_ios_value.valueChanged.connect(controller.change_sens_ios)
-        self.leftCameraButton.toggled.connect(controller.change_checked_left)
-        self.autoexp.clicked.connect(controller.change_auto_exp)
-        self.autofocus.clicked.connect(controller.change_auto_focus)
-        self.qs = QSound('sound/welcome.wav')
-        self.qs.play()
+        self.left_lensPos_value.valueChanged.connect(controller.change_left_lenPos)
+        self.left_exp_time_value.valueChanged.connect(controller.change_left_exp_time)
+        self.left_sens_ios_value.valueChanged.connect(controller.change_left_sens_ios)
+        self.right_lensPos_value.valueChanged.connect(controller.change_right_lenPos)
+        self.right_exp_time_value.valueChanged.connect(controller.change_right_exp_time)
+        self.right_sens_ios_value.valueChanged.connect(controller.change_right_sens_ios)
+        self.autoexpleft.stateChanged.connect(controller.change_left_auto_exp)
+        self.autofocusleft.stateChanged.connect(controller.change_left_auto_focus)
+        self.autoexpright.stateChanged.connect(controller.change_right_auto_exp)
+        self.autofocusright.stateChanged.connect(controller.change_right_auto_focus)
+        self.BarCodeValue.editingFinished.connect(self.controller.barcode_edit)
+        # self.qs = QSound('sound/welcome.wav')
+        # self.qs.play()
 
     def setSounddict(self):
         sound_dict = {}
@@ -55,13 +61,16 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
     def setDefaultView(self):
         self.LabelFront.clear()
         self.LabelRear.clear()
-        self.lensPos_value.setValue(self.defaultSettingLensPos_value)
-        self.exp_time_value.setValue(self.defaultSettingExp_time_value)
-        self.sens_ios_value.setValue(self.defaultSettingSens_ios_value)
+        self.left_lensPos_value.setValue(self.defaultSettingLensPos_value)
+        self.left_exp_time_value.setValue(self.defaultSettingExp_time_value)
+        self.left_sens_ios_value.setValue(self.defaultSettingSens_ios_value)
+        self.right_lensPos_value.setValue(self.defaultSettingLensPos_value)
+        self.right_exp_time_value.setValue(self.defaultSettingExp_time_value)
+        self.right_sens_ios_value.setValue(self.defaultSettingSens_ios_value)
         self.LabelFront.setText(self.defaultFrontLabelText)
         self.LabelRear.setText(self.defaultRearLabelText)
         self.remind.setText(self.defaultRemindLabelText)
-        self.leftCameraButton.setChecked(True)
+        self.remind.setStyleSheet(self.defaultStyleSheet) 
 
     @pyqtSlot(np.ndarray)
     def UpdateFrontSlot(self, Image):
@@ -73,7 +82,6 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
 
     def keyPressEvent(self, event):
         self.BarCodeValue.setFocus()
-        self.BarCodeValue.editingFinished.connect(self.controller.barcode_edit)
 
     @pyqtSlot(AlertEnum)
     def runAlert(self, alertKey):
@@ -87,9 +95,10 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         current_sound.play()
         self.remind.setText(WarnAlert.warn_message)
         for i in range(0, 2400, 600):
-            QTimer.singleShot((0.5 * i), lambda: self.remind.setStyleSheet(self.defaultStyleSheet.replace("black", WarnAlert.warn_color)))
+            QTimer.singleShot((0.5 * i), lambda: self.remind.setStyleSheet(self.defaultStyleSheet.replace("black", WarnAlert.warn_color).replace('white', 'black')))
             QTimer.singleShot(i, lambda: self.remind.setStyleSheet(self.defaultStyleSheet))
-
+        QTimer.singleShot(3000, lambda: self.remind.setStyleSheet(self.defaultStyleSheet.replace("black", WarnAlert.warn_color).replace('white', 'black')))
+        # QTimer.singleShot(15000, lambda: self.remind.setStyleSheet(self.defaultStyleSheet))
 
     def setImg(self, frame, label):
         Image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)

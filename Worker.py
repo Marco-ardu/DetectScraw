@@ -21,9 +21,12 @@ class Worker(QThread):
     def __init__(self):
         super().__init__()
 
-        self.new_value = {'lenPos_new': mp.Value('Q', 156), 'exp_time_new': mp.Value('Q', 20000),
-                          'sens_ios_new': mp.Value('Q', 800)}
-        self.status = {'auto_exp_status': mp.Value('i', 1), 'auto_focus_status': mp.Value('i', 1)}
+        self.left_new_value = {'lenPos_new': mp.Value('Q', 156), 'exp_time_new': mp.Value('Q', 20000),
+                               'sens_ios_new': mp.Value('Q', 800)}
+        self.right_new_value = {'lenPos_new': mp.Value('Q', 156), 'exp_time_new': mp.Value('Q', 20000),
+                                'sens_ios_new': mp.Value('Q', 800)}
+        self.left_status = {'auto_exp_status': mp.Value('i', 2), 'auto_focus_status': mp.Value('i', 2)}
+        self.right_status = {'auto_exp_status': mp.Value('i', 2), 'auto_focus_status': mp.Value('i', 2)}
         self.command = mp.Value('i', 0)
         self.right_location = mp.Value('i', 2)
         self.right_isQualified = mp.Value('i', 2)
@@ -46,10 +49,10 @@ class Worker(QThread):
         time.sleep(6)
         self.Mxids = self.Mxid()
         try:
-            LeftCamera = LeftCameraProcess(self.FrontImage, self.Alert, self.Mxids[0], self.new_value, self.status,
+            LeftCamera = LeftCameraProcess(self.FrontImage, self.Alert, self.Mxids[0], self.left_new_value, self.left_status,
                                            self.left_recv_barcode, self.command, self.left_location,
                                            self.left_isQualified, self.right_location, self.right_isQualified)
-            RightCamera = RightCameraProcess(self.RearImage, self.Alert, self.Mxids[1], self.new_value, self.status,
+            RightCamera = RightCameraProcess(self.RearImage, self.Alert, self.Mxids[1], self.right_new_value, self.right_status,
                                              self.right_recv_barcode, self.command, self.left_location,
                                              self.left_isQualified, self.right_location, self.right_isQualified)
             Cameras = [LeftCamera, RightCamera]
