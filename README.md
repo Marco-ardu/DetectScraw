@@ -25,7 +25,7 @@ pyuic5 ui/main.ui -o ui/ui_main.py
 
 ## 打包程序
 ```shell
-pyinstaller -i cam.ico Program.py --add-data="cam.ico;." --add-data="sound\\*;sound\\" --add-data="config.yml;." --add-data="cameraFunc\models\yolox_nano_components_openvino_2021.4_6shave.blob;cameraFunc\\models\\" --distpath="C:\\OAK_Detection_Scraw" --exclude-module=pyinstaller -y -w 
+pyinstaller -i cam.ico  --add-data="cam.ico;." --add-data="sound\\*;sound\\" --add-data="config.yml;." --add-data="cameraFunc\models\yolox_nano_components_openvino_2021.4_6shave.blob;cameraFunc\\models\\" --distpath="C:\\OAK_Detection_Scraw" --exclude-module=pyinstaller -y -w Program.py
 ```
 ### 参数说明
 -i 程序图标 <br>
