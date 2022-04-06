@@ -3,6 +3,7 @@ import numpy as np
 import yaml
 from PyQt5.QtCore import Qt, pyqtSlot, QTimer
 from PyQt5.QtGui import QPixmap, QImage
+from PyQt5 import QtGui
 from PyQt5.QtMultimedia import QSound
 from PyQt5.QtWidgets import (
     QMainWindow
@@ -29,6 +30,9 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         self.defaultSettingSens_ios_value = 800
 
     def setup(self, controller):
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap("cam.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.setWindowIcon(icon)
         self.controller = controller
         self.sound_dict = self.setSounddict()
         self.btnStart.clicked.connect(controller.btnStart_clicked)
