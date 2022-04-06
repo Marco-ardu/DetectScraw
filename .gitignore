@@ -9,3 +9,8 @@ logs.zip
 test.py
 __pycache__
 venv
+build
+dist
+Program.spec
+ui/main_copy.ui
+.vscode

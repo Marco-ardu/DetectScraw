@@ -1,6 +1,5 @@
 import multiprocessing as mp
 import queue
-import traceback
 from abc import ABC, abstractmethod
 
 import yaml

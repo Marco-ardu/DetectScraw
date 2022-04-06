@@ -1,9 +1,12 @@
-import time
+import os
+
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication
 from loguru import logger
 
 from View import ViewWindow
 from Worker import Worker
+
 
 class MainController:
     def __init__(self, view: ViewWindow) -> None:
@@ -11,8 +14,7 @@ class MainController:
 
     def start(self):
         self.view.setup(self)
-        self.view.show() 
-        # self.view.showFullScreen()
+        self.view.showFullScreen()
         self.view.app = QApplication.instance()  # 实例化APP，获取app的指针
         self.view.Worker = Worker()
         self.view.Worker.finished.connect(self.view.setDefaultView)
@@ -63,27 +65,42 @@ class MainController:
 
     def change_left_lenPos(self):
         self.view.BarCodeValue.setFocus()
+        self.view.left_lensPos_edit.setText(str(self.view.left_lensPos_value.value()))
         self.view.Worker.left_new_value['lenPos_new'].value = self.view.left_lensPos_value.value()
+        self.view.autofocusleft.setChecked(False)
 
     def change_left_exp_time(self):
         self.view.BarCodeValue.setFocus()
+        self.view.left_exp_time_edit.setText(str(self.view.left_exp_time_value.value()))
         self.view.Worker.left_new_value['exp_time_new'].value = self.view.left_exp_time_value.value()
+        self.view.autoexpleft.setChecked(False)
 
     def change_left_sens_ios(self):
         self.view.BarCodeValue.setFocus()
+        self.view.left_sens_ios_edit.setText(str(self.view.left_sens_ios_value.value()))
         self.view.Worker.left_new_value['sens_ios_new'].value = self.view.left_sens_ios_value.value()
+        self.view.autoexpleft.setChecked(False)
 
     def change_right_lenPos(self):
         self.view.BarCodeValue.setFocus()
+        self.view.right_lensPos_edit.setText(str(self.view.right_lensPos_value.value()))
         self.view.Worker.right_new_value['lenPos_new'].value = self.view.right_lensPos_value.value()
+        self.view.autofocusright.setChecked(False)
 
     def change_right_exp_time(self):
         self.view.BarCodeValue.setFocus()
+        self.view.right_exp_time_edit.setText(str(self.view.right_exp_time_value.value()))
         self.view.Worker.right_new_value['exp_time_new'].value = self.view.right_exp_time_value.value()
+        self.view.autoexpright.setChecked(False)
 
     def change_right_sens_ios(self):
         self.view.BarCodeValue.setFocus()
+        self.view.right_sens_ios_edit.setText(str(self.view.right_sens_ios_value.value()))
         self.view.Worker.right_new_value['sens_ios_new'].value = self.view.right_sens_ios_value.value()
+        self.view.autoexpright  .setChecked(False)
+
+    def change_edit_value(self):
+        self.view.BarCodeValue.setFocus()
 
     def change_left_auto_exp(self):
         self.view.BarCodeValue.setFocus()
@@ -112,3 +129,16 @@ class MainController:
             self.view.Worker.right_status['auto_focus_status'].value = 2
         else:
             self.view.Worker.right_status['auto_focus_status'].value = 1
+    
+    def clicked_Openpath(self):
+        start_directory = 'images'
+        os.startfile(start_directory)
+        self.view.BarCodeValue.setFocus()
+    
+    def setAllScreen(self):
+        self.view.setWindowState(Qt.WindowFullScreen)
+        self.view.BarCodeValue.setFocus()
+
+    def setNoAllScreen(self):
+        self.view.setWindowState(Qt.WindowActive)
+        self.view.BarCodeValue.setFocus()

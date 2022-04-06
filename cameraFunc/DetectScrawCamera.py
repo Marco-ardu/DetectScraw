@@ -1,17 +1,14 @@
-from pickle import TRUE
 import queue
 import time
-import traceback
-from pathlib import Path
 
-import blobconverter
 import depthai as dai
 import numpy as np
 import yaml
 from depthai_sdk import toTensorResult
 from loguru import logger
 
-from demo_utils import getNNPath, setLogPath, multiclass_nms, demo_postprocess, cv2AddChineseText
+from demo_utils import (cv2AddChineseText, demo_postprocess, getNNPath,
+                        multiclass_nms, setPath)
 from visualize import vis
 
 CLASSES = [
@@ -19,8 +16,6 @@ CLASSES = [
     "no_screw",
 ]
 
-parentDir = Path(__file__).parent
-blobconverter.set_defaults(output_dir=parentDir / Path("models"))
 size = (320, 320)
 nn_path = "cameraFunc/models/yolox_nano_components_openvino_2021.4_6shave.blob"
 rgb_resolutions = {
@@ -41,7 +36,7 @@ with open('config.yml', 'r') as stream:
 
 def run_Scraw_Camera(frame_queue, command, alert, device_mxid, repeat_times, new_value, old_value, direction, status,
                      barcode, result):
-    setLogPath()
+    setPath()
     frames_qualified = ({})
     max_count = args['max_count']
     Barcode = None
@@ -159,7 +154,7 @@ def run_Scraw_Camera(frame_queue, command, alert, device_mxid, repeat_times, new
                 if new_value['exp_time_new'].value != old_value['exp_time_old'].value \
                         or new_value['sens_ios_new'].value != old_value['sens_ios_old'].value \
                         and status['auto_exp_status'].value != 2:
-                    logger.info('set {} Camera exp_time: {}， sens_ios: {}'.format(direction,
+                    logger.info('set {} Camera exp_time: {}, sens_ios: {}'.format(direction,
                                                                                     new_value['exp_time_new'].value,
                                                                                     new_value['sens_ios_new'].value))
                     ctrl = dai.CameraControl()

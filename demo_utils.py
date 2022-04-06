@@ -1,50 +1,28 @@
-from json.tool import main
 import os
 import platform
 import subprocess
 import sys
-import os
 import threading
+import zipfile
 from datetime import datetime
 from pathlib import Path
-import depthai as dai
+
 import cv2
+import depthai as dai
 import numpy as np
 import yaml
 from PIL import ImageDraw, ImageFont, Image
 from loguru import logger
-import zipfile
-import time
 
 __all__ = ["mkdir", "nms", "multiclass_nms", "demo_postprocess",
            "play_sound", "getNNPath", "cv2AddChineseText",
-           "setLogPath", "audio_remind", "put_text", 'save_yml', 
+           "setPath", "audio_remind", "put_text", 'save_yml', 
            'save_to_picture', 'getCameraMxid', 'isExist']
 
 
 whether_dict = {True: 'PASS', False: 'NG'}
 
-def compression_pictures():
-    target_path = 'images'
-    all_content = os.listdir(target_path)
-    png_paths = []
-    for i in all_content:
-        if i.split('.')[-1] == 'png':
-            png_paths.append('images/'+ i)
-    logger.info('All png numbers is {}'.format(len(png_paths)))
-    if len(png_paths) > 1000:
-        time_res = datetime.now().strftime("%Y%m%d_%H%M%S")
-        zip_path = 'images/{}_images.7z'.format(time_res)
-        f = zipfile.ZipFile(os.path.abspath(zip_path),'w',zipfile.ZIP_DEFLATED)
-        for i in png_paths:
-            f.write(i)
-        f.close()
-        logger.info('compression path is {}'.format(zip_path))
-        for i in png_paths:
-            os.remove(i)
-
-
-'''获取文件的大小,结果保留两位小数，单位为MB'''
+'''获取文件的大小,结果保留两位小数,单位为MB'''
 def get_FileSize(filePath):
     fsize = os.path.getsize(filePath)
     fsize = fsize/float(1024*1024)
@@ -268,7 +246,7 @@ def cv2AddChineseText(img, text, position, textColor=(0, 255, 0), textSize=30):
     return cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)
 
 
-def setLogPath():
+def setPath():
     logPath = ''
     if getattr(sys, 'frozen', False):
         dirname = Path(sys.executable).resolve().parent
@@ -276,6 +254,8 @@ def setLogPath():
     elif __file__:
         logPath = Path("./logs.txt")
     logger.add(logPath.as_posix())
+    mkdir('images')
+
 
 
 def put_text(img, text, org, color=(255, 255, 255), bg=(0, 0, 0), font_scale=0.5, thickness=1):

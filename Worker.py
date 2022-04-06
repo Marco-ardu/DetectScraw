@@ -7,10 +7,9 @@ import numpy
 from PyQt5.QtCore import QThread, pyqtSignal
 from loguru import logger
 
-from demo_utils import save_yml, save_to_picture
+from demo_utils import isExist, save_to_picture, save_yml
 from factories.AlertFactory import AlertEnum
 from model.ProccessModel import LeftCameraProcess, RightCameraProcess
-from demo_utils import isExist
 
 
 class Worker(QThread):

@@ -1,4 +1,3 @@
-import time
 import cv2
 import numpy as np
 import yaml
@@ -46,9 +45,16 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         self.autofocusleft.stateChanged.connect(controller.change_left_auto_focus)
         self.autoexpright.stateChanged.connect(controller.change_right_auto_exp)
         self.autofocusright.stateChanged.connect(controller.change_right_auto_focus)
+        self.left_lensPos_edit.textChanged.connect(controller.change_edit_value)
+        self.left_sens_ios_edit.textChanged.connect(controller.change_edit_value)
+        self.left_exp_time_edit.textChanged.connect(controller.change_edit_value)
+        self.right_sens_ios_edit.textChanged.connect(controller.change_edit_value)
+        self.right_exp_time_edit.textChanged.connect(controller.change_edit_value)
+        self.right_lensPos_edit.textChanged.connect(controller.change_edit_value)
         self.BarCodeValue.editingFinished.connect(self.controller.barcode_edit)
-        # self.qs = QSound('sound/welcome.wav')
-        # self.qs.play()
+        self.btnAllScreen.clicked.connect(controller.setAllScreen)
+        self.btnNoAllScreen.clicked.connect(controller.setNoAllScreen)
+        self.btnOpenPath.clicked.connect(controller.clicked_Openpath)
 
     def setSounddict(self):
         sound_dict = {}
@@ -71,6 +77,12 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         self.LabelRear.setText(self.defaultRearLabelText)
         self.remind.setText(self.defaultRemindLabelText)
         self.remind.setStyleSheet(self.defaultStyleSheet) 
+        self.left_exp_time_edit.setText(str(self.defaultSettingExp_time_value))
+        self.right_exp_time_edit.setText(str(self.defaultSettingExp_time_value))
+        self.left_sens_ios_edit.setText(str(self.defaultSettingSens_ios_value))
+        self.right_sens_ios_edit.setText(str(self.defaultSettingSens_ios_value))
+        self.left_lensPos_edit.setText(str(self.defaultSettingLensPos_value))
+        self.right_lensPos_edit.setText(str(self.defaultSettingLensPos_value))
 
     @pyqtSlot(np.ndarray)
     def UpdateFrontSlot(self, Image):
@@ -98,7 +110,6 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
             QTimer.singleShot((0.5 * i), lambda: self.remind.setStyleSheet(self.defaultStyleSheet.replace("black", WarnAlert.warn_color).replace('white', 'black')))
             QTimer.singleShot(i, lambda: self.remind.setStyleSheet(self.defaultStyleSheet))
         QTimer.singleShot(3000, lambda: self.remind.setStyleSheet(self.defaultStyleSheet.replace("black", WarnAlert.warn_color).replace('white', 'black')))
-        # QTimer.singleShot(15000, lambda: self.remind.setStyleSheet(self.defaultStyleSheet))
 
     def setImg(self, frame, label):
         Image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
