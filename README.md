@@ -28,9 +28,9 @@ pyuic5 ui/main.ui -o ui/ui_main.py
 pyinstaller -i cam.ico Program.py --add-data="cam.ico;." --add-data="sound\\*;sound\\" --add-data="config.yml;." --add-data="cameraFunc\models\yolox_nano_components_openvino_2021.4_6shave.blob;cameraFunc\\models\\" --distpath="C:\\OAK_Detection_Scraw" --exclude-module=pyinstaller -y -w 
 ```
 ### 参数说明
--i 程序图标
---add-data 追加打包的资源
---distpath 打包dist输出路径
---exclude-module 打包忽略的依赖
--w 关闭命令行显示
+-i 程序图标 <br>
+--add-data 追加打包的资源 <br>
+--distpath 打包dist输出路径 <br> 
+--exclude-module 打包忽略的依赖 <br>
+-w 关闭命令行显示 <br>
 -y 交互选择为yes
