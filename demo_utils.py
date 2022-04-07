@@ -104,14 +104,20 @@ def isExist():
         args = yaml.load(stream, Loader=yaml.FullLoader)
     MXIDS = getCameraMxid()
     logger.info(MXIDS)
-    if args['left_camera_mxid'] is None or args['right_camera_mxid'] is None:
-        return MXIDS
-    else:
-        if args['left_camera_mxid'] not in MXIDS or args['right_camera_mxid'] not in MXIDS:
-            return MXIDS
+    if len(MXIDS)==2:
+        if args['left_camera_mxid'] is None or args['right_camera_mxid'] is None or args['left_camera_mxid'] not in MXIDS or args['right_camera_mxid'] not in MXIDS:
+            logger.info('camera change')
+            return {"left_mxid": MXIDS[0], "left_mxid": MXIDS[1]}
         else:
-            logger.info('get args ')
-            return [args['left_camera_mxid'], args['right_camera_mxid']]
+            logger.info('get args')
+            return {"left_mxid": args['left_camera_mxid'], "right_mxid": args['right_camera_mxid']}
+    elif len(MXIDS)==1:
+        if args['left_camera_mxid'] == MXIDS[0]:
+            return {'left_mxid': MXIDS[0]}
+        elif args['right_camera_mxid'] == MXIDS[0]:
+            return {'right_mxid': MXIDS[0]}
+    else:
+        return {}
 
 
 

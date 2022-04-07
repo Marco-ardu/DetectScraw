@@ -29,22 +29,22 @@ class ICameraProcess(ABC):
 
 class BasicCameraProcess(ICameraProcess):
     def __init__(self, ImageSignal: pyqtSignal, AlertSignal: pyqtSignal, Mxid, new_value, status, barcode,
-                 command, left_location, left_isQualified, right_location, right_isQualified) -> None:
+                 command, left_location, left_isQualified, right_location, right_isQualified, alert) -> None:
         super().__init__()
         self.camera = DetectScrawCamera.run_Scraw_Camera
         self.ImageSignal = ImageSignal
         self.AlertSignal = AlertSignal
         self.old_value = {'lenPos_old': mp.Value('Q', 156), 'exp_time_old': mp.Value('Q', 20000),
                           'sens_ios_old': mp.Value('Q', 800)}
+        self.queue = mp.Queue(4)
+        self.repeat_times = mp.Value('i', 0)
         self.new_value = new_value
         self.status = status
         self.Mxid = Mxid
         self.barcode = barcode
         self.command = command
-        self.queue = mp.Queue(4)
+        self.alert = alert
         self.send_result, self.recv_result = mp.Pipe()
-        self.alert = mp.Value('i', 99)
-        self.repeat_times = mp.Value('i', 0)
         self.right_location = right_location
         self.right_isQualified = right_isQualified
         self.left_location = left_location
@@ -104,8 +104,8 @@ class BasicCameraProcess(ICameraProcess):
 
 class LeftCameraProcess(BasicCameraProcess):
     def __init__(self, ImageSignal: pyqtSignal, AlertSignal: pyqtSignal, Mxid, new_value, status, barcode,
-                 command, left_location, left_isQualified, right_location, right_isQualified) -> None:
-        super().__init__(ImageSignal, AlertSignal, Mxid, new_value, status, barcode, command, left_location, left_isQualified, right_location, right_isQualified)
+                 command, left_location, left_isQualified, right_location, right_isQualified, alert) -> None:
+        super().__init__(ImageSignal, AlertSignal, Mxid, new_value, status, barcode, command, left_location, left_isQualified, right_location, right_isQualified, alert)
         self.direction = 'left'
 
     def parse_left_result(self):
@@ -131,8 +131,8 @@ class LeftCameraProcess(BasicCameraProcess):
 
 class RightCameraProcess(BasicCameraProcess):
     def __init__(self, ImageSignal: pyqtSignal, AlertSignal: pyqtSignal, Mxid, new_value, status, barcode,
-                 command, left_location, left_isQualified, right_location, right_isQualified) -> None:
-        super().__init__(ImageSignal, AlertSignal, Mxid, new_value, status, barcode, command, left_location, left_isQualified, right_location, right_isQualified)
+                 command, left_location, left_isQualified, right_location, right_isQualified, alert) -> None:
+        super().__init__(ImageSignal, AlertSignal, Mxid, new_value, status, barcode, command, left_location, left_isQualified, right_location, right_isQualified, alert)
         self.direction = 'right'
 
     def parse_right_result(self):

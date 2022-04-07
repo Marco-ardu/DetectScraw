@@ -16,7 +16,7 @@ class MainController:
         self.view.setup(self)
         self.view.showFullScreen()
         self.view.app = QApplication.instance()  # 实例化APP，获取app的指针
-        self.view.Worker = Worker()
+        self.view.Worker = Worker(self.view)
         self.view.Worker.finished.connect(self.view.setDefaultView)
 
     def btnStart_clicked(self):

@@ -1,10 +1,10 @@
 ; 脚本由 Inno Setup 脚本向导 生成！
 ; 有关创建 Inno Setup 脚本文件的详细资料请查阅帮助文档！
 
-#define MyAppName "OAK_Scraw"
-#define MyAppVersion "2022-4-2 2.0"
+#define MyAppName "OAKScrawDetect"
+#define MyAppVersion "2022-4-7 2.0.4"
 #define MyAppPublisher "arducam"
-#define MyAppURL "暂无"
+#define MyAppURL "www.oakchina.cn"
 #define MyAppExeName "Program.exe"
 #define MyAppAssocName MyAppName + ""
 #define MyAppAssocExt ".exe"
@@ -17,7 +17,7 @@
 AppId={{920DB844-B238-4F41-84AD-7C8074C6D42C}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
-;AppVerName={#MyAppName} {#MyAppVersion}
+AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
@@ -31,8 +31,8 @@ AllowNoIcons=yes
 ;PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 OutputDir=C:\oak
-OutputBaseFilename=OAK_Scraw_2.0
-SetupIconFile=C:\OAK_Detection_Scraw\cam.ico
+OutputBaseFilename=OAK_Scraw_2.0.4
+SetupIconFile=C:\OAK_Detection_Scraw\Program\cam.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -45,8 +45,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "startupicon"; Description: "开机启动"; GroupDescription: "{cm:AdditionalIcons}";
 
 [Files]
-Source: "C:\OAK_Detection_Scraw\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\OAK_Detection_Scraw\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\OAK_Detection_Scraw\Program\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\OAK_Detection_Scraw\Program\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; 注意: 不要在任何共享系统文件上使用“Flags: ignoreversion”
 
 [Registry]
@@ -60,8 +60,6 @@ Root: HKA; Subkey: "Software\Classes\Applications\{#MyAppExeName}\SupportedTypes
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
-Name: "{autodesktop}\images"; Filename: "{app}\images"; Tasks: desktopicon
-Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: startupicon
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent

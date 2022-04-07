@@ -54,3 +54,8 @@ class ReminderLocationAlert(WarnAlert):
     warn_color = 'yellow'
     warn_message = '请检查位置是否摆放正确'
     warn_file = 'sound/ALL_location.wav'
+
+class ReminderCameraLoadAlert(WarnAlert):
+    warn_color = 'yellow'
+    warn_message = '未成功加载相机，关闭相机，重新开启'
+    warn_file = 'sound/FailLoadCam.wav'
