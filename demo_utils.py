@@ -107,7 +107,7 @@ def isExist():
     if len(MXIDS)==2:
         if args['left_camera_mxid'] is None or args['right_camera_mxid'] is None or args['left_camera_mxid'] not in MXIDS or args['right_camera_mxid'] not in MXIDS:
             logger.info('camera change')
-            return {"left_mxid": MXIDS[0], "left_mxid": MXIDS[1]}
+            return {"left_mxid": MXIDS[0], "right_mxid": MXIDS[1]}
         else:
             logger.info('get args')
             return {"left_mxid": args['left_camera_mxid'], "right_mxid": args['right_camera_mxid']}
@@ -203,8 +203,8 @@ def save_yml(config_camera):
     with open('config.yml', 'r') as stream:
         config = yaml.load(stream, Loader=yaml.FullLoader)
     with open('config.yml', 'w') as stream:
-        config['left_camera_mxid'] = config_camera[6][0]
-        config['right_camera_mxid'] = config_camera[6][1]
+        config['left_camera_mxid'] = config_camera[6]['left_mxid']
+        config['right_camera_mxid'] = config_camera[6]['right_mxid']
         config['left_camera_lensPos'] = config_camera[0]
         config['left_camera_exp_time'] = config_camera[1]
         config['left_camera_sens_ios'] = config_camera[2]

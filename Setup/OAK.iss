@@ -2,7 +2,7 @@
 ; 有关创建 Inno Setup 脚本文件的详细资料请查阅帮助文档！
 
 #define MyAppName "OAKScrawDetect"
-#define MyAppVersion "2022-4-7 2.0.4"
+#define MyAppVersion "2022-4-12 2.0.6"
 #define MyAppPublisher "arducam"
 #define MyAppURL "www.oakchina.cn"
 #define MyAppExeName "Program.exe"
@@ -31,7 +31,7 @@ AllowNoIcons=yes
 ;PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 OutputDir=C:\oak
-OutputBaseFilename=OAK_Scraw_2.0.4
+OutputBaseFilename=OAK_Scraw_2.0.6
 SetupIconFile=C:\OAK_Detection_Scraw\Program\cam.ico
 Compression=lzma
 SolidCompression=yes

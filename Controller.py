@@ -1,7 +1,9 @@
 import os
+import traceback
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication
+from cv2 import trace
 from loguru import logger
 
 from View import ViewWindow
@@ -53,6 +55,7 @@ class MainController:
         try:
             self.view.Worker.save_yml(self.getConfig())
         except Exception as e:
+            print(traceback.print_exc())
             logger.error(e)
 
     def barcode_edit(self):

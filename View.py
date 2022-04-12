@@ -55,6 +55,7 @@ class ViewWindow(QMainWindow, Ui_MainWindow):
         self.right_sens_ios_edit.textChanged.connect(controller.change_edit_value)
         self.right_exp_time_edit.textChanged.connect(controller.change_edit_value)
         self.right_lensPos_edit.textChanged.connect(controller.change_edit_value)
+        self.BarCodeValue.setAttribute(Qt.WA_InputMethodEnabled, False)
         self.BarCodeValue.editingFinished.connect(self.controller.barcode_edit)
         self.btnAllScreen.clicked.connect(controller.setAllScreen)
         self.btnNoAllScreen.clicked.connect(controller.setNoAllScreen)

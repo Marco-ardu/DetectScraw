@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1104</width>
-    <height>542</height>
+    <width>1044</width>
+    <height>652</height>
    </rect>
   </property>
   <property name="palette">
@@ -138,6 +138,9 @@
   </property>
   <property name="windowTitle">
    <string>OAK Scraw Detect</string>
+  </property>
+  <property name="locale">
+   <locale language="English" country="UnitedStates"/>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_8" stretch="8,1,1,1,2">
@@ -852,6 +855,9 @@
               <height>16777215</height>
              </size>
             </property>
+            <property name="locale">
+             <locale language="English" country="UnitedStates"/>
+            </property>
            </widget>
           </item>
          </layout>
@@ -1259,7 +1265,7 @@
   <action name="actionStart">
    <property name="icon">
     <iconset>
-     <normaloff>../../../Users/xiao'tang/.designer/test_img/icons8-play-64.png</normaloff>../../../Users/xiao'tang/.designer/test_img/icons8-play-64.png</iconset>
+     <normaloff>../../../Users/Users/Users/xiao'tang/.designer/test_img/icons8-play-64.png</normaloff>../../../Users/Users/Users/xiao'tang/.designer/test_img/icons8-play-64.png</iconset>
    </property>
    <property name="text">
     <string>Start</string>
@@ -1272,7 +1278,7 @@
   <action name="actionStop">
    <property name="icon">
     <iconset>
-     <normaloff>../../../Users/xiao'tang/.designer/test_img/icons8-stop-48.png</normaloff>../../../Users/xiao'tang/.designer/test_img/icons8-stop-48.png</iconset>
+     <normaloff>../../../Users/Users/Users/xiao'tang/.designer/test_img/icons8-stop-48.png</normaloff>../../../Users/Users/Users/xiao'tang/.designer/test_img/icons8-stop-48.png</iconset>
    </property>
    <property name="text">
     <string>Stop</string>
